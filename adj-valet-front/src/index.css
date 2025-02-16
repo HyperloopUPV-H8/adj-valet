@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@theme {
+    --color-hupv-orange: #EE7623;
+    --color-hupv-blue: #003B4D;
+}
