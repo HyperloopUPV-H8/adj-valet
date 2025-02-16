@@ -1,6 +1,19 @@
 @import "tailwindcss";
 
+html, body {
+    height: 100%;
+    margin: 0;
+} 
+
+#root {
+    height: 100%;
+}
+
 @theme {
     --color-hupv-orange: #EE7623;
     --color-hupv-blue: #003B4D;
+
+    --shadow-small: 8px 8px 8px 0px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 10px 10px 8px 0px rgba(0, 0, 0, 0.1);
+    --shadow-large: 12px 12px 8px 0px rgba(0, 0, 0, 0.1);
 }
