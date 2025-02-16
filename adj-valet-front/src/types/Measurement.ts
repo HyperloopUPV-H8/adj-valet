@@ -1,5 +1,7 @@
+export type MeasurementId = string;
+
 export interface Measurement {
-    id: string,
+    id: MeasurementId,
     name: string,
     type: string,
     podUnits: string,
