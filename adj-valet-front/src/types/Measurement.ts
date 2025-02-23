@@ -1,11 +1,9 @@
-export type MeasurementId = string;
-
-export interface Measurement {
-    id: MeasurementId,
-    name: string,
-    type: string,
-    podUnits: string,
-    displayUnits: string,
-    safeRange: number[],
-    warningRange: number[]
-}
+export type Measurement = {
+    name: string;
+    type: string;
+    podUnits: string;
+    displayUnits: string;
+    enumValues: string[];
+    safeRange: number[];
+    warningRange: number[];
+};
