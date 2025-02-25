@@ -4,10 +4,11 @@ import { Content } from './layout/Content';
 import { Sidebar } from './layout/Sidebar';
 import { ADJ_INFO_MOCK } from './api/mock';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { ADJ } from './types/ADJ';
 
 function App() {
 
-    const [ADJInfo, setADJInfo] = useState({});
+    const [ADJInfo, setADJInfo] = useState<ADJ>();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -18,7 +19,7 @@ function App() {
     }, []);
     
     return (
-        <div className="h-full flex gap-4">
+        <div className="h-full flex">
             { isLoading ?
                 <div className="flex items-center justify-center w-full h-full">
                     <LoadingSpinner />

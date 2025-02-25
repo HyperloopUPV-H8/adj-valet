@@ -3,7 +3,7 @@ import { Packet } from "./Packet";
 
 export type Board = {
     board_id: number;
-    board_ip: number;
+    board_ip: string;
     measurements: Record<string, Measurement>[];
     packets: Record<string, Packet>[];
 };
