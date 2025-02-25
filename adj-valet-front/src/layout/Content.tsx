@@ -1,17 +1,24 @@
-import { JSX } from "react";
-import { Board } from "../types/Board";
-import { GeneralInfo } from "../types/GeneralInfo"
-import { JsonObject } from "../App";
+import { useContext } from "react";
+import ADJContext from "../context/ADJContext";
+import { BoardForm } from "../components/BoardForm";
 
 interface Props {
-    selectedData: GeneralInfo | Board | undefined;
-    renderInputs: (obj: JsonObject, path?: string[]) => JSX.Element[]
+    selectedSection: string;
 }
 
-export const Content = ({ selectedData, renderInputs}: Props) => {
-    return (
-        <div className="px-8 py-4">
-            {selectedData ? renderInputs(selectedData as JsonObject) : <p>No hay datos disponibles</p>}
-        </div>
+export const Content = ({ selectedSection }: Props) => {
+
+    const ADJInfo = useContext(ADJContext);
+
+    const result = ADJInfo?.boards.find(board => Object.keys(board)[0] === selectedSection)
+    const result2 = result ? Object.values(result)[0] : undefined;
+
+    const content = selectedSection === 'general_info' ? (
+        <div>General Info</div>
+    ) : (
+        <BoardForm board={result2 || {}}/>
     )
-}
+
+    return content;
+};
+
