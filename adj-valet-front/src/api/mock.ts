@@ -19,7 +19,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 board_ip: "192.168.1.1",
                 measurements: [
                     {
-                        measurement_id: {
+                        "25": {
                             name: "Temperature Sensor",
                             type: "Analog",
                             podUnits: "C",
@@ -32,7 +32,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 ],
                 packets: [
                     {
-                        packet_id: {
+                        "05": {
                             type: "Data",
                             name: "Sensor Data",
                             variables: [{ "temperature": "25" }, { "humidity": "60" }]
@@ -47,7 +47,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 board_ip: "192.168.1.2",
                 measurements: [
                     {
-                        measurement_id: {
+                        "105": {
                             name: "Pressure Sensor",
                             type: "Digital",
                             podUnits: "Pa",
@@ -60,7 +60,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 ],
                 packets: [
                     {
-                        packet_id: {
+                        "302": {
                             type: "Data",
                             name: "Sensor Data",
                             variables: [{ "pressure": "500" }, { "altitude": "100" }]
@@ -75,7 +75,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 board_ip: "192.168.1.3",
                 measurements: [
                     {
-                        measurement_id: {
+                        "100": {
                             name: "Humidity Sensor",
                             type: "Analog",
                             podUnits: "%",
@@ -88,7 +88,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 ],
                 packets: [
                     {
-                        packet_id: {
+                        "200": {
                             type: "Data",
                             name: "Sensor Data",
                             variables: [{ "humidity": "45" }, { "temperature": "22" }]
