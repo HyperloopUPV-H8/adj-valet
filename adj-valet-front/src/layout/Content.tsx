@@ -16,7 +16,7 @@ export const Content = ({ selectedSection }: Props) => {
     const content = selectedSection === 'general_info' ? (
         <div>General Info</div>
     ) : (
-        <BoardForm board={result2 || {}}/>
+        <BoardForm board={result2}/>
     )
 
     return content;

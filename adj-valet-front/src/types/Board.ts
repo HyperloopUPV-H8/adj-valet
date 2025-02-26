@@ -1,9 +1,13 @@
 import { Measurement } from "./Measurement";
 import { Packet } from "./Packet";
 
-export type Board = {
+export type BoardId = string;
+
+export type BoardInfo = {
     board_id: number;
     board_ip: string;
-    measurements: Record<string, Measurement>[];
-    packets: Record<string, Packet>[];
-};
+    measurements: Measurement[];
+    packets: Packet[];
+}
+
+export type Board = Record<BoardId, BoardInfo>;
