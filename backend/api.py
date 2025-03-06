@@ -18,10 +18,11 @@ async def set_adj_path(request: Request):
     ADJ_PATH.value = data["path"]
     return {"message": "ADJ_PATH set successfully", "path": ADJ_PATH.value}
 
-@app.post("/assemble")
+@app.get("/assemble")
 async def assemble_json():
     """
     Assembles the MonoJSON from the directory specified by ADJ_PATH.
+    Returns the complete initial JSON state.
     """
     if ADJ_PATH.value is None:
         raise HTTPException(status_code=400, detail="ADJ_PATH is not set.")
@@ -32,7 +33,7 @@ async def assemble_json():
 async def update_json(request: Request):
     """
     Receives a JSON payload with only updated fields,
-    merges them into the current MonoJSON, and returns the result.
+    merges them into the current MonoJSON, and returns the updated JSON.
     """
     updated_fields = await request.json()
     if ADJ_PATH.value is None:
