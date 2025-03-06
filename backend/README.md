@@ -74,29 +74,28 @@ Body Example:
                 "board_id": 1,
                 "board_ip": "192.168.1.101",
                 "measurements": [
-                    {
-                        "M1": {
-                            "name": "Temperature",
-                            "type": "uint8",
-                            "podUnits": "Celsius",
-                            "displayUnits": "°C",
-                            "enumValues": [],
-                            "safeRange": [20.0, 80.0],
-                            "warningRange": [15.0, 85.0]
-                        }
-                    }
+                {
+                    "id":"M1"
+                    "name": "Temperature",
+                    "type": "uint8",
+                    "podUnits": "Celsius",
+                    "displayUnits": "°C",
+                    "enumValues": ["u", "v", "w"],
+                    "safeRange": [20.0, 80.0],
+                    "warningRange": [15.0, 85.0]
+                },...
                 ],
                 "packets": [
                     {
-                        "100": {
-                            "type": "data",
-                            "name": "Packet1",
-                            "variables": [
-                                { "var1": "value1" }
-                            ]
-                        }
-                    }
-                ]
+                        "id":"100"
+                        "type": "data",
+                        "name": "Packet1",
+                        "variables": [
+                            { "var1": "value1" }
+                        ]
+
+                    },...
+                ],
             }
         },
         {
@@ -134,9 +133,8 @@ Body Example:
             "BoardA": {
                 "packets": [
                     {
-                        "100": {
-                            "name": "Updated Packet Name"
-                        }
+                        "id":"100"
+                        "name": "Updated Packet Name"
                     }
                 ]
             }
@@ -161,7 +159,7 @@ Path
 
 ```json
 {
-    "path" := str
+    "path": str
 }
 ```
 
@@ -180,8 +178,9 @@ MonoJSON
         str:{
             "board_id":int,
             "board_ip":int,
-            "measurements":[{
-                "measurement_id":{
+            "measurements":[
+                {
+                    "id":int,
                     "name":str,
                     "type":str,
                     "podUnits":str,
@@ -189,8 +188,8 @@ MonoJSON
                     "enumValues":[str],
                     "safeRange": [int],
                     "warningRange":[int]
-                }
-            }],
+                },
+            ],
             "packets":[{
                 "packet_id":{
                     "type":str,
