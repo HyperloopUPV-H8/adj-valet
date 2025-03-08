@@ -1,6 +1,5 @@
-export type MeasurementId = string;
-
-export type MeasurementInfo = {
+export type Measurement = {
+    id: string;
     name: string;
     type: string;
     podUnits: string;
@@ -9,5 +8,3 @@ export type MeasurementInfo = {
     safeRange: number[];
     warningRange: number[];
 };
-
-export type Measurement = Record<MeasurementId, MeasurementInfo>;

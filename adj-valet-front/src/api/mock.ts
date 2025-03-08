@@ -19,7 +19,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                 board_ip: "192.168.1.1",
                 measurements: [
                     {
-                        "25": {
+                            id: "25",
                             name: "Temperature Sensor",
                             type: "Analog",
                             podUnits: "C",
@@ -27,7 +27,6 @@ export const ADJ_INFO_MOCK: ADJ = {
                             enumValues: ["Low", "Medium", "High"],
                             safeRange: [0, 50],
                             warningRange: [51, 100]
-                        }
                     }
                 ],
                 packets: [
@@ -47,15 +46,14 @@ export const ADJ_INFO_MOCK: ADJ = {
                 board_ip: "192.168.1.2",
                 measurements: [
                     {
-                        "105": {
-                            name: "Pressure Sensor",
-                            type: "Digital",
-                            podUnits: "Pa",
-                            displayUnits: "Pascal",
-                            enumValues: ["Low", "Medium", "High"],
-                            safeRange: [0, 1000],
-                            warningRange: [1001, 2000]
-                        }
+                        id: "105",
+                        name: "Pressure Sensor",
+                        type: "Digital",
+                        podUnits: "Pa",
+                        displayUnits: "Pascal",
+                        enumValues: ["Low", "Medium", "High"],
+                        safeRange: [0, 1000],
+                        warningRange: [1001, 2000]
                     }
                 ],
                 packets: [
@@ -75,15 +73,14 @@ export const ADJ_INFO_MOCK: ADJ = {
                 board_ip: "192.168.1.3",
                 measurements: [
                     {
-                        "100": {
-                            name: "Humidity Sensor",
-                            type: "Analog",
-                            podUnits: "%",
-                            displayUnits: "Percentage",
-                            enumValues: ["Low", "Medium", "High"],
-                            safeRange: [0, 70],
-                            warningRange: [71, 100]
-                        }
+                        id: "100",
+                        name: "Humidity Sensor",
+                        type: "Analog",
+                        podUnits: "%",
+                        displayUnits: "Percentage",
+                        enumValues: ["Low", "Medium", "High"],
+                        safeRange: [0, 70],
+                        warningRange: [71, 100]
                     }
                 ],
                 packets: [

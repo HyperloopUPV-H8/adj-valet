@@ -1,6 +1,8 @@
-import { useContext } from "react";
+import { useContext, } from "react";
 import ADJContext from "../context/ADJContext";
 import { BoardForm } from "../components/BoardForm";
+import { Board, BoardId, BoardInfo } from "../types/Board";
+import { ADJ } from "../types/ADJ";
 
 interface Props {
     selectedSection: string;
@@ -8,17 +10,24 @@ interface Props {
 
 export const Content = ({ selectedSection }: Props) => {
 
-    const ADJInfo = useContext(ADJContext);
+    const ADJInfo = useContext(ADJContext) as ADJ;
 
-    const result = ADJInfo?.boards.find(board => Object.keys(board)[0] === selectedSection)
-    const result2 = result ? Object.values(result)[0] : undefined;
+    if(selectedSection === 'general_info') {
+        return (
+            <div>General Info Section</div>
+        )
+    } else {
 
-    const content = selectedSection === 'general_info' ? (
-        <div>General Info</div>
-    ) : (
-        <BoardForm board={result2}/>
-    )
+        const selectedBoard = ADJInfo.boards.find((board: Board) => Object.keys(board)[0] === selectedSection) as Board;
+        const selectedBoardId = Object.keys(selectedBoard)[0] as BoardId;
+        const selectedBoardInfo = selectedBoard[selectedBoardId] as BoardInfo;
 
-    return content;
+        return (
+            <div>
+                <h2 className="text-2xl font-bold">Board {selectedBoardId}</h2>
+                <BoardForm boardId={selectedBoardId} boardInfo={selectedBoardInfo} />
+            </div>
+        )
+    }
 };
 

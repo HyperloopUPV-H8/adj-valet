@@ -7,7 +7,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ADJ } from './types/ADJ';
 
 function App() {
-    const [ADJInfo, setADJInfo] = useState<ADJ>();
+    const [ADJInfo, setADJInfo] = useState<ADJ>({} as ADJ);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedSection, setSelectedSection] = useState('general_info');
 
