@@ -1,6 +1,7 @@
 import { useADJStore } from '../store/ADJStore';
 import { BoardInfo, BoardName } from '../types/Board';
 import { Input } from './Input';
+import { MeasurementForm } from './MeasurementForm';
 
 interface Props {
     boardName: BoardName;
@@ -11,7 +12,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
     const { updateBoard } = useADJStore();
 
     return (
-        <div className="flex flex-col p-12">
+        <div className="w-[25rem] flex flex-col">
             <Input
                 object={boardInfo}
                 field={'board_id'}
@@ -29,12 +30,14 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
             />
 
             <ul>
-                {boardInfo.measurements.map((measurement, index) => {
+                {boardInfo.measurements.map((measurement) => {
                     return (
-                        <li
-                            key={index}
-                            className="my-4 rounded-lg bg-gray-100 p-2"
-                        ></li>
+                        <li key={measurement.id}>
+                            <MeasurementForm
+                                boardName={boardName}
+                                measurement={measurement}
+                            />
+                        </li>
                     );
                 })}
             </ul>

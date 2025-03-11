@@ -14,6 +14,12 @@ interface Store {
         field: keyof Board,
         value: string,
     ) => void;
+    updateMeasurement: (
+        boardName: BoardName,
+        measurementId: string,
+        field: keyof Measurement,
+        value: string,
+    ) => void;
 }
 
 export const useADJStore = create<Store>((set, get) => ({
