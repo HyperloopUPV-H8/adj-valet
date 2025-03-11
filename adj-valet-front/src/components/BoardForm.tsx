@@ -1,30 +1,40 @@
-import { BoardId, BoardInfo } from '../types/Board';
+import { useADJStore } from '../store/ADJStore';
+import { BoardInfo, BoardName } from '../types/Board';
 import { Input } from './Input';
-import { MeasurementForm } from './MeasurementForm';
 
 interface Props {
-    boardId: BoardId;
+    boardName: BoardName;
     boardInfo: BoardInfo;
 }
 
-export const BoardForm = ({ boardId, boardInfo }: Props) => {
-    console.log(boardId, boardInfo);
+export const BoardForm = ({ boardName, boardInfo }: Props) => {
+    const { updateBoard } = useADJStore();
 
     return (
         <div className="flex flex-col p-12">
-            <Input label="Board ID" value={boardInfo.board_id.toString()} />
+            <Input
+                object={boardInfo}
+                field={'board_id'}
+                setObject={(field, value) =>
+                    updateBoard(boardName, field, value)
+                }
+            />
 
-            <Input label="Board IP" value={boardInfo.board_ip} />
+            <Input
+                object={boardInfo}
+                field={'board_ip'}
+                setObject={(field, value) =>
+                    updateBoard(boardName, field, value)
+                }
+            />
 
             <ul>
                 {boardInfo.measurements.map((measurement, index) => {
                     return (
-                        <li key={index} className='bg-gray-100 p-2 rounded-lg my-4'>
-                            <MeasurementForm
-                                boardId={boardId}
-                                measurement={measurement}
-                            />
-                        </li>
+                        <li
+                            key={index}
+                            className="my-4 rounded-lg bg-gray-100 p-2"
+                        ></li>
                     );
                 })}
             </ul>

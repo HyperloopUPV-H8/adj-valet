@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
-import ADJContext from './context/ADJContext';
 import { Content } from './layout/Content';
 import { Sidebar } from './layout/Sidebar';
 import { ADJ_INFO_MOCK } from './api/mock';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { ADJ } from './types/ADJ';
+import { useADJStore } from './store/ADJStore';
 
 function App() {
-    const [ADJInfo, setADJInfo] = useState<ADJ>({} as ADJ);
+    const { setADJStore } = useADJStore();
     const [isLoading, setIsLoading] = useState(true);
     const [selectedSection, setSelectedSection] = useState('general_info');
 
     useEffect(() => {
         setTimeout(() => {
-            setADJInfo(ADJ_INFO_MOCK);
+            setADJStore(ADJ_INFO_MOCK);
             setIsLoading(false);
         }, 1000);
-    }, []);
+    }, [setADJStore]);
 
     return (
         <div className="flex h-full">
@@ -25,7 +24,7 @@ function App() {
                     <LoadingSpinner />
                 </div>
             ) : (
-                <ADJContext.Provider value={ADJInfo}>
+                <div className='flex h-full w-full'>
                     <Sidebar
                         selectedSection={selectedSection}
                         onSelectedSection={(section: string) =>
@@ -36,7 +35,7 @@ function App() {
                     <Content
                         selectedSection={selectedSection}
                     ></Content>
-                </ADJContext.Provider>
+                </div>
             )}
         </div>
     );

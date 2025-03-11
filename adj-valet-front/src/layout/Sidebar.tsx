@@ -1,6 +1,5 @@
-import { useContext } from 'react';
 import { Button } from '../components/Button';
-import ADJContext from '../context/ADJContext';
+import { useADJStore } from '../store/ADJStore';
 
 interface Props {
     selectedSection: string;
@@ -8,7 +7,8 @@ interface Props {
 }
 
 export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
-    const { boards } = useContext(ADJContext) || {};
+
+    const { boards } = useADJStore();
 
     return (
         <section className="bg-hupv-blue shadow-large flex h-full w-sm flex-col gap-4 p-4">
@@ -21,8 +21,7 @@ export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
                 </h2>
 
                 <ul className="mx-auto flex w-[90%] flex-col gap-4">
-                    {boards &&
-                        boards.map((board, index) => {
+                    {boards.map((board, index) => {
                             const name = Object.keys(board)[0];
                             return (
                                 <li key={index} className="shadow-small">

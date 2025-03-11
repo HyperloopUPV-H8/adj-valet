@@ -1,25 +1,26 @@
-import { useEffect, useState } from 'react';
-
-interface Props {
-    label: string;
-    value?: string;
+interface InputProps<T> {
+    object: T;
+    field: keyof T;
+    setObject: (field: keyof T, value: string) => void;
+    placeholder?: string;
 }
 
-export const Input = ({ label, value = '' }: Props) => {
-    const [inputValue, setInputValue] = useState(value);
-
-    useEffect(() => {
-        setInputValue(value);
-    }, [value]);
-
+export const Input = <T,>({
+    object,
+    field,
+    setObject,
+    placeholder,
+}: InputProps<T>) => {
     return (
-        <div className="flex flex-col">
-            <label className="text-gray-400">{label}</label>
+        <div className="flex flex-col gap-1">
+            <label htmlFor={String(field)}>{String(field)}</label>
             <input
+                id={String(field)}
                 type="text"
-                value={inputValue}
-                onChange={(event) => setInputValue(event.target.value)}
-                className="focus:border-hupv-orange h-12 w-fit rounded-2xl border border-gray-400 px-4 focus:border-2 focus:outline-none"
+                value={String(object[field]) || ''}
+                onChange={(e) => setObject(field, e.target.value)}
+                placeholder={placeholder}
+                className="border border-gray-300 rounded-lg p-2 my-2"
             />
         </div>
     );

@@ -1,7 +1,7 @@
 import { Measurement } from "./Measurement";
 import { Packet } from "./Packet";
 
-export type BoardId = string;
+export type BoardName = string;
 
 export type BoardInfo = {
     board_id: number;
@@ -10,4 +10,4 @@ export type BoardInfo = {
     packets: Packet[];
 }
 
-export type Board = Record<BoardId, BoardInfo>;
+export type Board = Record<BoardName, BoardInfo>;

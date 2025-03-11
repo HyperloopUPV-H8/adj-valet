@@ -2,9 +2,10 @@ export type Measurement = {
     id: string;
     name: string;
     type: string;
-    podUnits: string;
     displayUnits: string;
+    podUnits: string;
     enumValues: string[];
-    safeRange: number[];
-    warningRange: number[];
+    above: { safe: number; warning: number };
+    below: { safe: number; warning: number };
+    out_of_range: [number, number];
 };
