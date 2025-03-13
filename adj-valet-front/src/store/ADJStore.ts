@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ADJ } from '../types/ADJ';
 import { Board, BoardInfo, BoardName } from '../types/Board';
-import { Measurement } from '../types/Measurement';
+import { Measurement, Range } from '../types/Measurement';
 
 interface Store {
     general_info: object;
@@ -19,6 +19,13 @@ interface Store {
         measurementId: string,
         field: keyof Measurement,
         value: string,
+    ) => void;
+    updateRange: (
+        boardName: BoardName,
+        measurementId: string,
+        range: 'above' | 'below',
+        field: keyof Range,
+        value: string
     ) => void;
 }
 
@@ -80,4 +87,36 @@ export const useADJStore = create<Store>((set, get) => ({
             boards,
         }));
     },
+
+    updateRange: (
+        boardName: BoardName,
+        measurementId: string,
+        range: 'above' | 'below',
+        field: keyof Range,
+        value: string
+    ) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            board => Object.keys(board)[0] === boardName
+        )
+        if (boardIndex !== -1) {
+            const boardInfo = boards[boardIndex][boardName] as BoardInfo
+            const measurementIndex = boardInfo.measurements.findIndex(
+                measurement => measurement.id === measurementId
+            )
+            if (measurementIndex !== -1) {
+                const measurement = boardInfo.measurements[measurementIndex]
+                const measurementRange = measurement[range] as Range;
+                measurement[range] = {
+                    ...measurementRange,
+                    [field]: value
+                }
+            }
+        }
+
+        set((state) => ({
+            ...state,
+            boards
+        }))
+    }
 }));

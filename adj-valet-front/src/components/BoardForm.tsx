@@ -12,7 +12,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
     const { updateBoard } = useADJStore();
 
     return (
-        <div className="w-[25rem] flex flex-col">
+        <div className="flex w-[25rem] flex-col">
             <Input
                 object={boardInfo}
                 field={'board_id'}
@@ -29,6 +29,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                 }
             />
 
+            <h2 className="mt-8 mb-2 text-2xl font-bold">Measurements</h2>
             <ul>
                 {boardInfo.measurements.map((measurement) => {
                     return (

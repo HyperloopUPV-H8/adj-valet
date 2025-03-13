@@ -25,8 +25,15 @@ export const ADJ_INFO_MOCK: ADJ = {
                             podUnits: "C",
                             displayUnits: "Celsius",
                             enumValues: ["Low", "Medium", "High"],
-                            safeRange: [0, 50],
-                            warningRange: [51, 100]
+                            below: {
+                                safe: 50,
+                                warning: 20
+                            },
+                            above: {
+                                safe: 30,
+                                warning: 40
+                            },
+                            out_of_range: [10, 60]
                     }
                 ],
                 packets: [
@@ -52,8 +59,15 @@ export const ADJ_INFO_MOCK: ADJ = {
                         podUnits: "Pa",
                         displayUnits: "Pascal",
                         enumValues: ["Low", "Medium", "High"],
-                        safeRange: [0, 1000],
-                        warningRange: [1001, 2000]
+                        above: {
+                            safe: 1000,
+                            warning: 2000
+                        },
+                        below: {
+                            safe: 500,
+                            warning: 100
+                        },
+                        out_of_range: [0, 3000]
                     }
                 ],
                 packets: [
@@ -79,8 +93,15 @@ export const ADJ_INFO_MOCK: ADJ = {
                         podUnits: "%",
                         displayUnits: "Percentage",
                         enumValues: ["Low", "Medium", "High"],
-                        safeRange: [0, 70],
-                        warningRange: [71, 100]
+                        above: {
+                            safe: 60,
+                            warning: 80
+                        },
+                        below: {
+                            safe: 20,
+                            warning: 40
+                        },
+                        out_of_range: [0, 100]
                     }
                 ],
                 packets: [

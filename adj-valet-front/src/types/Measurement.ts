@@ -5,7 +5,14 @@ export type Measurement = {
     displayUnits: string;
     podUnits: string;
     enumValues: string[];
-    above: { safe: number; warning: number };
-    below: { safe: number; warning: number };
-    out_of_range: [number, number];
+    above: Range;
+    below: Range;
+    out_of_range: ArrayRange;
 };
+
+export type Range = {
+    safe: number;
+    warning: number;
+};
+
+export type ArrayRange = [number, number]; 
