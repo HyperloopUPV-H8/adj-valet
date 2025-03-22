@@ -7,12 +7,20 @@ def transform_measurement(meas: Dict[str, Any]) -> Dict[str, Any]:
     Expected file fields:
         - id, name, type, podUnits, displayUnits, enumValues,
           above: {safe, warning}, below: {safe, warning}
-    Maps to:
-        - name, type, podUnits, displayUnits, enumValues,
-          safeRange: [below.safe, above.safe],
-          warningRange: [below.warning, above.warning]
+    Maps to a measurement object:
+        {
+            "id": int,
+            "name": str,
+            "type": str,
+            "podUnits": str,
+            "displayUnits": str,
+            "enumValues": [str],
+            "safeRange": [int, int],
+            "warningRange": [int, int]
+        }
     """
     return {
+        "id": meas["id"],
         "name": meas["name"],
         "type": meas["type"],
         "podUnits": meas["podUnits"],
@@ -27,8 +35,8 @@ def transform_packet(packet: Dict[str, Any]) -> Dict[str, Any]:
     Transform a packet from its file format into the MonoJSON format.
     Expected file fields:
         - id, type, name, variables (list of strings)
-    Maps to:
-        - type, name, variables: converted to a list of single-key dicts.
+    Maps to a packet details object.
+    Note: In the final JSON, each packet is nested under the literal key "packet_id".
     """
     return {
         "type": packet["type"],
@@ -39,17 +47,39 @@ def transform_packet(packet: Dict[str, Any]) -> Dict[str, Any]:
 def assemble_monojson(adj_path: str) -> Dict[str, Any]:
     """
     Assemble the final MonoJSON from the global files and board-specific data.
-    Structure:
+    The resulting structure:
+
     {
         "general_info": { ... },
         "board_list": { ... },
         "boards": [
             {
                 "<board_name>": {
-                    "board_id": uint16,
-                    "board_ip": str,
-                    "measurements": [ { "<measurement_id>": { ... } }, ... ],
-                    "packets": [ { "<packet_id>": { ... } }, ... ]
+                    "board_id": int,
+                    "board_ip": int,
+                    "measurements": [
+                        {
+                            "id": int,
+                            "name": str,
+                            "type": str,
+                            "podUnits": str,
+                            "displayUnits": str,
+                            "enumValues": [str],
+                            "safeRange": [int, int],
+                            "warningRange": [int, int]
+                        },
+                        ...
+                    ],
+                    "packets": [
+                        {
+                            "packet_id": {
+                                "type": str,
+                                "name": str,
+                                "variables": [{str:str}]
+                            }
+                        },
+                        ...
+                    ]
                 }
             },
             ...
@@ -64,19 +94,19 @@ def assemble_monojson(adj_path: str) -> Dict[str, Any]:
 
     boards = read_board_data(adj_path)
     for board_name, board in boards.items():
-        # Transform measurements
+        # Transform measurements into a list of measurement objects.
         transformed_measurements: List[Dict[str, Any]] = []
         for meas in board.get("measurements", []):
             if "id" not in meas:
                 raise ValueError(f"Measurement missing 'id' in board '{board_name}'")
-            transformed_measurements.append({ meas["id"]: transform_measurement(meas) })
+            transformed_measurements.append(transform_measurement(meas))
 
-        # Transform packets
+        # Transform packets into a list of dictionaries with key "packet_id".
         transformed_packets: List[Dict[str, Any]] = []
         for packet in board.get("packets", []):
             if "id" not in packet:
                 raise ValueError(f"Packet missing 'id' in board '{board_name}'")
-            transformed_packets.append({ str(packet["id"]): transform_packet(packet) })
+            transformed_packets.append({"packet_id": transform_packet(packet)})
 
         monojson["boards"].append({
             board_name: {
