@@ -1,4 +1,5 @@
 import { BoardForm } from '../components/BoardForm';
+import { GeneralInfoForm } from '../components/GeneralInfoForm';
 import { useADJStore } from '../store/ADJStore';
 import { Board, BoardName, BoardInfo } from '../types/Board';
 
@@ -10,7 +11,7 @@ export const Content = ({ selectedSection }: Props) => {
     const { boards } = useADJStore();
 
     if (selectedSection === 'general_info') {
-        return <div>General Info Section</div>;
+        return <GeneralInfoForm />;
     } else {
         const selectedBoard = boards.find(
             (board: Board) => Object.keys(board)[0] === selectedSection,

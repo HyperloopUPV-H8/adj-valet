@@ -2,7 +2,7 @@ interface InputProps<T> {
     object: T;
     field: keyof T;
     setObject: (field: keyof T, value: string) => void;
-    placeholder?: string;
+    label?: string;
 }
 
 function getNestedValue<T>(obj: T, path: string): unknown {
@@ -13,19 +13,19 @@ export const Input = <T,>({
     object,
     field,
     setObject,
-    placeholder,
+    label,
 }: InputProps<T>) => {
     const fieldPath = String(field);
 
     return (
         <div className="flex flex-col gap-1">
-            <label htmlFor={fieldPath}>{fieldPath}</label>
+            <label htmlFor={fieldPath}>{label}</label>
             <input
                 id={fieldPath}
                 type="text"
                 value={String(getNestedValue(object, fieldPath)) || ''}
                 onChange={(e) => setObject(field, e.target.value)}
-                placeholder={placeholder}
+                placeholder={label}
                 className="border border-gray-300 rounded-lg p-2 my-2"
             />
         </div>

@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const MeasurementForm = ({ boardName, measurement }: Props) => {
-    const [isDisplayed, setIsDisplayed] = useState(false);
+    const [ isDisplayed, setIsDisplayed ] = useState(false);
     const { updateMeasurement, updateRange  } = useADJStore();
 
     return (
@@ -31,6 +31,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateMeasurement(boardName, measurement.id, field, value)
                     }
+                    label='ID'
                 />
 
                 <Input
@@ -39,6 +40,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateMeasurement(boardName, measurement.id, field, value)
                     }
+                    label='Name'
                 />
 
                 <Input
@@ -47,6 +49,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateMeasurement(boardName, measurement.id, field, value)
                     }
+                    label='Type'
                 />
 
                 <Input
@@ -55,6 +58,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateMeasurement(boardName, measurement.id, field, value)
                     }
+                    label='Display Units'
                 />
 
                 <Input
@@ -63,6 +67,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateMeasurement(boardName, measurement.id, field, value)
                     }
+                    label='Pod Units'
                 />
 
                 <Input
@@ -71,6 +76,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateRange(boardName, measurement.id, 'above', field, value)
                     }
+                    label='Above Safe'
                 />
 
                 <Input
@@ -79,6 +85,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateRange(boardName, measurement.id, 'above', field, value)
                     }
+                    label='Above Warning'
                 />
 
                 <Input
@@ -87,6 +94,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateRange(boardName, measurement.id, 'below', field, value)
                     }
+                    label='Below Safe'
                 />
 
                 <Input
@@ -95,6 +103,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     setObject={(field, value) =>
                         updateRange(boardName, measurement.id, 'below', field, value)
                     }
+                    label='Below Warning'
                 />
             </div>
 
