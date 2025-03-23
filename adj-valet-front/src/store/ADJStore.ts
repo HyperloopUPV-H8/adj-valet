@@ -9,6 +9,7 @@ interface Store {
     boards: Board[];
     board_list: Record<string, string>;
 
+    assembleADJ: () => ADJ;
     setADJStore: (ADJ: ADJ) => void;
     updateBoard: (
         boardName: BoardName,
@@ -42,6 +43,14 @@ export const useADJStore = create<Store>((set, get) => ({
     general_info: {} as GeneralInfo,
     boards: [] as Board[],
     board_list: {} as Record<string, string>,
+
+    assembleADJ: () => {
+        return {
+            general_info: get().general_info,
+            boards: get().boards,
+            board_list: get().board_list
+        }
+    },
 
     setADJStore: (ADJ: ADJ) =>
         set({

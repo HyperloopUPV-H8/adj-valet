@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Content } from './layout/Content';
 import { Sidebar } from './layout/Sidebar';
-import { ADJ_INFO_MOCK } from './api/mock';
-import { LoadingSpinner } from './components/LoadingSpinner';
 import { useADJStore } from './store/ADJStore';
+import { assembleJSON, sendADJPath } from './api/api';
+import { LoadingSpinner } from './components/LoadingSpinner';
 
 function App() {
     const { setADJStore } = useADJStore();
-    const [isLoading, setIsLoading] = useState(true);
     const [selectedSection, setSelectedSection] = useState('general_info');
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [ADJPath, setADJPath] = useState('');
+    const [errorMessage, setErrorMessage] = useState<string>('');
     const adj_path = localStorage.getItem('adj_path');
 
     // useEffect(() => {
@@ -19,29 +20,28 @@ function App() {
     //     }, 1000);
     // }, [setADJStore]);
 
-    useEffect(() => {
-        setTimeout(() => {
-            setADJStore(ADJ_INFO_MOCK);
+    const onEnterADJDir = async () => {
+        setIsLoading(true);
+        try {
+            await assembleADJ();
+            window.location.reload();
+        } catch(error) {
+            setErrorMessage(`${error}`);
+        } finally {
             setIsLoading(false);
-        });
-        // if(!adj_path) {
-        //     setIsLoading(false);
+        }
+    }
 
-        // }
-    }, [adj_path]);
-
-    function onEnterADJDir(): void {
+    const assembleADJ = async () => {
+        await sendADJPath(ADJPath);
         localStorage.setItem('adj_path', ADJPath);
-        window.location.reload();
+        const adj = await assembleJSON();
+        setADJStore(adj);
     }
 
     return (
         <div className="flex h-full">
-            {isLoading ? (
-                <div className="flex h-full w-full items-center justify-center">
-                    <LoadingSpinner />
-                </div>
-            ) : !adj_path ? (
+            { !adj_path ? (
                 <div className="flex h-full w-full flex-col items-center justify-center gap-4">
                     <h1 className="text-2xl font-bold">No ADJ selected</h1>
                     <input
@@ -53,6 +53,16 @@ function App() {
                     <button className="bg-hupv-orange cursor-pointer rounded-xl px-4 py-2 font-bold text-white" onClick={() => onEnterADJDir()}>
                         Continue
                     </button>
+                    {
+                        isLoading && <div>
+                            <LoadingSpinner />
+                        </div>
+                    }
+                    { 
+                        errorMessage && <p className='text-red-500 font-bold'>
+                            { errorMessage }
+                        </p> 
+                    }
                 </div>
             ) : (
                 <div className="flex h-full w-full">

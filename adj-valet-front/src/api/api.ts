@@ -1,8 +1,10 @@
-const BASE_PATH = 'http://localhost:3000';
+import { ADJ } from "../types/ADJ";
+
+const BASE_PATH = 'http://localhost:8000';
 
 export const sendADJPath = async (adjPath: string) => {
     if (!adjPath) {
-        throw new Error("El parámetro 'adjPath' es obligatorio.");
+        throw new Error("You must introduce a valid ADJ path.");
     }
 
     const url = `${BASE_PATH}/path`;
@@ -10,19 +12,67 @@ export const sendADJPath = async (adjPath: string) => {
     try {
         const response = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify({ adjPath }),
+            body: JSON.stringify({ 
+                path: adjPath
+            }),
             headers: {
                 'Content-Type': 'application/json',
             },
         });
 
         if (!response.ok) {
-            throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+            throw new Error(`Query error: ${response.status} ${response.statusText}.`);
         }
 
-        return await response.json(); // Si esperas un JSON como respuesta
     } catch (error) {
-        console.error("Error al enviar la solicitud:", error);
-        throw error; // Re-lanzar el error para que el llamador lo maneje
+        console.error("Query error:", error);
+        throw error;
     }
 };
+
+export const assembleJSON = async () => {
+
+    const url = `${BASE_PATH}/assemble`;
+
+    try {
+        const response = await fetch(url,{
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`Query error: ${response.status} ${response.statusText}.`);
+        }
+
+        return await response.json();
+
+    } catch(error) {
+        console.error("Query error:", error);
+        throw error;
+    }
+}
+
+export const sendADJ = async (adj: ADJ) => {
+
+    const url = `${BASE_PATH}/update`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(adj),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`Query error: ${response.status} ${response.statusText}.`);
+        }
+    } catch(error) {
+        console.error("Query error:", error)
+        throw error;
+    }
+
+}

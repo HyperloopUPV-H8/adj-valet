@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { sendADJ } from '../api/api';
 import { Button } from '../components/Button';
 import { useADJStore } from '../store/ADJStore';
 
@@ -7,18 +9,54 @@ interface Props {
 }
 
 export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
-    const { boards } = useADJStore();
+    const { boards, assembleADJ } = useADJStore();
+    const [errorMessage, setErrorMessage] = useState<string>('');
+    const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
-    const clearADJPath = () => {
+    const onClearADJPath = () => {
         localStorage.removeItem('adj_path');
         window.location.reload();
     } 
 
+    const onSaveADJ = async () => {
+        try {
+            const adj = assembleADJ();
+            await sendADJ(adj);
+            setIsSuccess(true);
+            setTimeout(() => {
+                setIsSuccess(false);
+            }, 2000)
+        } catch(error) {
+            setErrorMessage(`${error}`);
+            setTimeout(() => {
+                setErrorMessage('');
+            }, 2000)
+        }
+    }
+
     return (
         <section className="bg-hupv-blue shadow-large flex h-full w-sm flex-col gap-4 p-4">
-            <button className="bg-hupv-orange align-center flex w-fit cursor-pointer justify-center self-end rounded-full p-2 text-white" onClick={() => clearADJPath()}>
-                <i className="fa-solid fa-gear text-2xl"></i>
-            </button>
+
+            {
+                errorMessage && <p className='font-bold text-red-500'>
+                    { errorMessage }
+                </p>
+            }
+
+            {
+                isSuccess && <p className='font-bold text-green-500'>
+                    ADJ updated successfully
+                </p>
+            }
+
+            <div className='flex gap-2 self-end'>
+                <button className="bg-green-500 align-center flex w-fit cursor-pointer rounded-full p-2 text-white" onClick={() => onSaveADJ()}>
+                    <i className="fa-solid fa-floppy-disk text-2xl"></i>
+                </button>
+                <button className="bg-hupv-orange align-center flex w-fit cursor-pointer rounded-full p-2 text-white" onClick={() => onClearADJPath()}>
+                    <i className="fa-solid fa-gear text-2xl"></i>
+                </button>
+            </div>
 
             <Button
                 title="General Info"
