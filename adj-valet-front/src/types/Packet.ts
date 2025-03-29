@@ -1,9 +1,6 @@
-export type PacketId = string;
-
-export type PacketInfo = {
+export type Packet = {
+    id: string;
     type: string;
     name: string;
-    variables: Record<string, string>[];
+    variables: string[];
 };
-
-export type Packet = Record<PacketId, PacketInfo>;

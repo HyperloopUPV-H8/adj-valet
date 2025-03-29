@@ -38,11 +38,10 @@ export const ADJ_INFO_MOCK: ADJ = {
                 ],
                 packets: [
                     {
-                        "05": {
-                            type: "Data",
-                            name: "Sensor Data",
-                            variables: [{ "temperature": "25" }, { "humidity": "60" }]
-                        }
+                        id: "05",
+                        type: "Data",
+                        name: "Sensor Data",
+                        variables: []
                     }
                 ]
             }
@@ -72,11 +71,10 @@ export const ADJ_INFO_MOCK: ADJ = {
                 ],
                 packets: [
                     {
-                        "302": {
-                            type: "Data",
-                            name: "Sensor Data",
-                            variables: [{ "pressure": "500" }, { "altitude": "100" }]
-                        }
+                        id: "302",
+                        type: "Data",
+                        name: "Sensor Data",
+                        variables: []
                     }
                 ]
             }
@@ -106,11 +104,10 @@ export const ADJ_INFO_MOCK: ADJ = {
                 ],
                 packets: [
                     {
-                        "200": {
-                            type: "Data",
-                            name: "Sensor Data",
-                            variables: [{ "humidity": "45" }, { "temperature": "22" }]
-                        }
+                        id: "200",
+                        type: "Data",
+                        name: "Sensor Data",
+                        variables: []
                     }
                 ]
             }
