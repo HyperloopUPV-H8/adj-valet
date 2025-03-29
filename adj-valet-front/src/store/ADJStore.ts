@@ -1,27 +1,43 @@
+/**
+ * @fileoverview Central state store for the ADJ-Valet application using Zustand
+ */
+
 import { create } from 'zustand';
 import { ADJ } from '../types/ADJ';
 import { Board, BoardInfo, BoardName } from '../types/Board';
 import { Measurement, Range } from '../types/Measurement';
 import { GeneralInfo } from '../types/GeneralInfo';
 
+/**
+ * Interface that defines the store structure and methods
+ * @interface Store
+ */
 interface Store {
+    /** General ADJ information */
     general_info: GeneralInfo;
+    /** List of boards */
     boards: Board[];
+    /** Mapping of board names to their identifiers */
     board_list: Record<string, string>;
 
+    /** Assembles and returns the complete ADJ object */
     assembleADJ: () => ADJ;
+    /** Sets the complete store state */
     setADJStore: (ADJ: ADJ) => void;
+    /** Updates a specific field of a board */
     updateBoard: (
         boardName: BoardName,
         field: keyof Board,
         value: string,
     ) => void;
+    /** Updates a specific field of a measurement */
     updateMeasurement: (
         boardName: BoardName,
         measurementId: string,
         field: keyof Measurement,
-        value: string,
+        value: unknown,
     ) => void;
+    /** Updates a specific field of a measurement range */
     updateRange: (
         boardName: BoardName,
         measurementId: string,
@@ -29,21 +45,31 @@ interface Store {
         field: keyof Range,
         value: string
     ) => void;
+    /** Updates a field in the general information */
     updateGeneralInfoField: (
         section: string,
         oldKey: string,
         newKey: string,
         value: unknown
     ) => void;
+    /** Adds a new field to a general information section */
     addGeneralInfoField: (section: string) => void;
+    /** Removes a field from a general information section */
     removeGeneralInfoField: (section: string, key: string) => void;
 }
 
+/**
+ * Custom hook that creates and manages the state store
+ */
 export const useADJStore = create<Store>((set, get) => ({
     general_info: {} as GeneralInfo,
     boards: [] as Board[],
     board_list: {} as Record<string, string>,
 
+    /**
+     * Assembles the complete ADJ object with current state
+     * @returns {ADJ} Complete ADJ object
+     */
     assembleADJ: () => {
         return {
             general_info: get().general_info,
@@ -52,6 +78,10 @@ export const useADJStore = create<Store>((set, get) => ({
         }
     },
 
+    /**
+     * Sets the complete store state
+     * @param {ADJ} ADJ - Complete ADJ object
+     */
     setADJStore: (ADJ: ADJ) =>
         set({
             general_info: ADJ.general_info,
@@ -59,6 +89,12 @@ export const useADJStore = create<Store>((set, get) => ({
             board_list: ADJ.board_list,
         }),
 
+    /**
+     * Updates a specific field of a board
+     * @param {BoardName} boardName - Name of the board
+     * @param {keyof Board} field - Field to update
+     * @param {string} value - New value
+     */
     updateBoard: (boardName: BoardName, field: keyof Board, value: string) => {
         const boards = get().boards;
         const boardIndex = boards.findIndex(
@@ -77,11 +113,18 @@ export const useADJStore = create<Store>((set, get) => ({
         }));
     },
 
+    /**
+     * Updates a specific field of a measurement
+     * @param {BoardName} boardName - Name of the board
+     * @param {string} measurementId - Measurement ID
+     * @param {keyof Measurement} field - Field to update
+     * @param {string} value - New value
+     */
     updateMeasurement: (
         boardName: BoardName,
         measurementId: string,
         field: keyof Measurement,
-        value: string,
+        value: unknown,
     ) => {
         const boards = get().boards;
         const boardIndex = boards.findIndex(
@@ -106,6 +149,14 @@ export const useADJStore = create<Store>((set, get) => ({
         }));
     },
 
+    /**
+     * Updates a specific field of a measurement range
+     * @param {BoardName} boardName - Name of the board
+     * @param {string} measurementId - Measurement ID
+     * @param {'above' | 'below'} range - Range type
+     * @param {keyof Range} field - Field to update
+     * @param {string} value - New value
+     */
     updateRange: (
         boardName: BoardName,
         measurementId: string,
@@ -138,6 +189,13 @@ export const useADJStore = create<Store>((set, get) => ({
         }))
     },
 
+    /**
+     * Updates a field in the general information
+     * @param {string} section - Section to update
+     * @param {string} oldKey - Previous field key
+     * @param {string} newKey - New field key
+     * @param {unknown} value - New value
+     */
     updateGeneralInfoField: (section: string, oldKey: string, newKey: string, value: unknown) => {
         const generalInfo = get().general_info;
         const generalInfoSection = generalInfo[section] as Record<string, unknown>;
@@ -154,6 +212,10 @@ export const useADJStore = create<Store>((set, get) => ({
         }));
     },
 
+    /**
+     * Adds a new field to a general information section
+     * @param {string} section - Section to add the field to
+     */
     addGeneralInfoField: (section: string) => {
         set((state) => {
             const generalInfo = { ...state.general_info };
@@ -177,6 +239,11 @@ export const useADJStore = create<Store>((set, get) => ({
         });
     },
     
+    /**
+     * Removes a field from a general information section
+     * @param {string} section - Section to remove the field from
+     * @param {string} key - Key of the field to remove
+     */
     removeGeneralInfoField: (section: string, key: string) => {
         set((state) => {
             const generalInfo = { ...state.general_info };

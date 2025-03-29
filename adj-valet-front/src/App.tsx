@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Content } from './layout/Content';
 import { Sidebar } from './layout/Sidebar';
 import { useADJStore } from './store/ADJStore';
-import { assembleJSON, sendADJPath } from './api/api';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { ADJ_INFO_MOCK } from './api/mock';
 
 function App() {
     const { setADJStore } = useADJStore();
@@ -13,18 +13,11 @@ function App() {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const adj_path = localStorage.getItem('adj_path');
 
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         setADJStore(ADJ_INFO_MOCK);
-    //         setIsLoading(false);
-    //     }, 1000);
-    // }, [setADJStore]);
-
     const onEnterADJDir = async () => {
         setIsLoading(true);
         try {
             await assembleADJ();
-            window.location.reload();
+            // window.location.reload();
         } catch(error) {
             setErrorMessage(`${error}`);
         } finally {
@@ -33,10 +26,10 @@ function App() {
     }
 
     const assembleADJ = async () => {
-        await sendADJPath(ADJPath);
+        // await sendADJPath(ADJPath);
         localStorage.setItem('adj_path', ADJPath);
-        const adj = await assembleJSON();
-        setADJStore(adj);
+        // const adj = await assembleJSON();
+        setADJStore(ADJ_INFO_MOCK);
     }
 
     return (

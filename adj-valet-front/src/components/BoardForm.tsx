@@ -1,7 +1,6 @@
 import { useADJStore } from '../store/ADJStore';
 import { BoardInfo, BoardName } from '../types/Board';
 import { Input } from './Input';
-import { MeasurementForm } from './MeasurementForm';
 
 interface Props {
     boardName: BoardName;
@@ -13,6 +12,8 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
 
     return (
         <div className="flex w-[25rem] flex-col">
+
+            <h2 className="mb-2 text-zinc-600 text-xl font-bold">Board ID</h2>
             <Input
                 object={boardInfo}
                 field={'board_id'}
@@ -21,6 +22,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                 }
             />
 
+            <h2 className="mb-2 mt-8 text-zinc-600 text-xl font-bold">Board IP</h2>
             <Input
                 object={boardInfo}
                 field={'board_ip'}
@@ -29,9 +31,9 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                 }
             />
 
-            <h2 className="mt-8 mb-2 text-2xl font-bold">Measurements</h2>
+            <h2 className="mt-8 mb-2 text-zinc-600 text-xl font-bold">Packets</h2>
             <ul>
-                {boardInfo.measurements.map((measurement) => {
+                {/* {boardInfo.measurements.map((measurement) => {
                     return (
                         <li key={measurement.id}>
                             <MeasurementForm
@@ -40,7 +42,11 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                             />
                         </li>
                     );
-                })}
+                })} */}
+
+                {
+                    
+                }
             </ul>
         </div>
     );

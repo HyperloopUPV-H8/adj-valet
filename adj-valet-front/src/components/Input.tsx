@@ -1,15 +1,20 @@
-interface InputProps<T> {
+interface InputProps<T extends Record<string, unknown>> {
     object: T;
     field: keyof T;
     setObject: (field: keyof T, value: string) => void;
     label?: string;
 }
 
-function getNestedValue<T>(obj: T, path: string): unknown {
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+function getNestedValue<T extends Record<string, unknown>>(obj: T, path: string): unknown {
+    return path.split('.').reduce((acc, part) => {
+        if (acc && typeof acc === 'object') {
+            return (acc as Record<string, unknown>)[part];
+        }
+        return undefined;
+    }, obj as unknown);
 }
 
-export const Input = <T,>({
+export const Input = <T extends Record<string, unknown>>({
     object,
     field,
     setObject,
