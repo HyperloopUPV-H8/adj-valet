@@ -24,7 +24,7 @@ export const Input = <T extends Record<string, unknown>>({
 
     return (
         <div className="flex flex-col gap-1">
-            <label htmlFor={fieldPath}>{label}</label>
+            <label htmlFor={fieldPath} className="text-sm font-medium text-gray-700">{label}</label>
             <input
                 id={fieldPath}
                 type="text"

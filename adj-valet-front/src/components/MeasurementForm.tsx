@@ -10,7 +10,6 @@ interface Props {
 }
 
 export const MeasurementForm = ({ boardName, measurement }: Props) => {
-    const [isDisplayed, setIsDisplayed] = useState(false);
     const { updateMeasurement, updateRange } = useADJStore();
 
     const [formData, setFormData] = useState<Measurement>(measurement);
@@ -93,16 +92,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
 
     return (
         <div>
-            <div
-                className={`bg-hupv-blue flex flex-col rounded-xl p-4 text-white ${isDisplayed ? '' : 'hidden'}`}
-            >
-                <div className="text-end">
-                    <i
-                        className="fa-solid fa-down-left-and-up-right-to-center w-fit cursor-pointer text-end text-xl"
-                        onClick={() => setIsDisplayed(false)}
-                    ></i>
-                </div>
-
+            <div className="flex flex-col rounded-xl p-4">
                 <form onSubmit={handleSubmit}>
                     <Input
                         object={formData}
@@ -151,7 +141,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
 
                     <div className="mb-2 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                            <label>
+                            <label className="text-sm font-medium text-gray-700">
                                 Enum Values ({formData.enumValues.length})
                             </label>
                         </div>
@@ -178,7 +168,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                                                     newValues,
                                                 );
                                             }}
-                                            className="block w-full rounded-lg border border-gray-300 p-2.5 text-white focus:border-blue-500 focus:ring-blue-500"
+                                            className="block w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:ring-blue-500"
                                         />
                                         <button
                                             type="button"
@@ -257,21 +247,11 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
 
                     <button
                         type="submit"
-                        className="mt-4 cursor-pointer rounded-lg bg-green-500 px-4 py-2 hover:bg-green-600"
-                        onClick={() => setIsDisplayed(false)}
+                        className="bg-hupv-orange/80 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
                     >
                         Save Changes
                     </button>
                 </form>
-            </div>
-
-            <div
-                className={`bg-hupv-blue cursor-pointer rounded-2xl px-4 py-2 text-white ${isDisplayed ? 'hidden' : ''}`}
-                onClick={() => setIsDisplayed(true)}
-            >
-                <p>
-                    {measurement.id} - {measurement.name}
-                </p>
             </div>
         </div>
     );

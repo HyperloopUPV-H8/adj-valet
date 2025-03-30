@@ -11,7 +11,7 @@ export const Modal = ({ isOpen, onClose, children }: Props) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="relative w-full max-w-xl rounded-2xl bg-white/90 p-8 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="relative w-full max-w-xl rounded-2xl bg-white/90 p-8 shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <button
                     onClick={onClose}
                     className="cursor-pointer absolute right-6 top-6 rounded-full bg-gray-100 p-2 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800"
