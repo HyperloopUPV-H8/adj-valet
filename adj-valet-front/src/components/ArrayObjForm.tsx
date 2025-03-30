@@ -1,4 +1,5 @@
 import { useADJStore } from '../store/ADJStore';
+import { useState } from 'react';
 
 interface Props {
     sectionName: string;
@@ -12,21 +13,34 @@ export const ArrayObjForm = ({ sectionName }: Props) => {
         removeGeneralInfoField,
     } = useADJStore();
 
-    const handleChange = (
-        oldKey: string,
-        field: 'key' | 'value',
-        value: string,
-    ) => {
-        if (field === 'key') {
+    const [editingKeys, setEditingKeys] = useState<Record<string, string>>({});
+
+    const handleKeyChange = (oldKey: string, newKey: string) => {
+        setEditingKeys({
+            ...editingKeys,
+            [oldKey]: newKey
+        });
+    };
+
+    const handleKeyBlur = (oldKey: string) => {
+        const newKey = editingKeys[oldKey];
+        if (newKey && newKey !== oldKey) {
             updateGeneralInfoField(
                 sectionName,
                 oldKey,
-                value,
-                general_info[oldKey],
+                newKey,
+                (general_info[sectionName] as Record<string, string>)[oldKey]
             );
-        } else {
-            updateGeneralInfoField(sectionName, oldKey, oldKey, value);
+            setEditingKeys(prev => {
+                const updated = {...prev};
+                delete updated[oldKey];
+                return updated;
+            });
         }
+    };
+
+    const handleValueChange = (key: string, value: string) => {
+        updateGeneralInfoField(sectionName, key, key, value);
     };
 
     return (
@@ -39,18 +53,15 @@ export const ArrayObjForm = ({ sectionName }: Props) => {
                 <div key={key} className="mb-2 flex gap-2">
                     <input
                         type="text"
-                        value={key}
-                        onChange={(e) =>
-                            handleChange(key, 'key', e.target.value)
-                        }
+                        value={editingKeys[key] ?? key}
+                        onChange={(e) => handleKeyChange(key, e.target.value)}
+                        onBlur={() => handleKeyBlur(key)}
                         className="border p-2"
                     />
                     <input
                         type="text"
                         value={value}
-                        onChange={(e) =>
-                            handleChange(key, 'value', e.target.value)
-                        }
+                        onChange={(e) => handleValueChange(key, e.target.value)}
                         className="border p-2"
                     />
                     <button
@@ -66,7 +77,7 @@ export const ArrayObjForm = ({ sectionName }: Props) => {
                 onClick={() => addGeneralInfoField(sectionName)}
                 className="bg-hupv-blue mt-2 cursor-pointer rounded-xl px-4 py-2 text-white"
             >
-                Añadir campo
+                Add field
             </button>
         </div>
     );
