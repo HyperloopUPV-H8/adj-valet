@@ -3,6 +3,7 @@ interface InputProps<T extends Record<string, unknown>> {
     field: keyof T;
     setObject: (field: keyof T, value: string) => void;
     label?: string;
+    className?: string;
 }
 
 function getNestedValue<T extends Record<string, unknown>>(obj: T, path: string): unknown {
@@ -19,11 +20,12 @@ export const Input = <T extends Record<string, unknown>>({
     field,
     setObject,
     label,
+    className,
 }: InputProps<T>) => {
     const fieldPath = String(field);
 
     return (
-        <div className="flex flex-col gap-1">
+        <div className={`flex flex-col gap-1 ${className}`}>
             <label htmlFor={fieldPath} className="text-sm font-medium text-gray-700">{label}</label>
             <input
                 id={fieldPath}

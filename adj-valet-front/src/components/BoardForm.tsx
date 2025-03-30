@@ -62,25 +62,51 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                 ))}
             </ul>
 
-            <h2 className="mt-8 mb-2 text-xl font-bold text-zinc-600">
-                Measurements
-            </h2>
-            <ul className="flex flex-wrap gap-4">
-                {boardInfo.measurements.map((measurement) => (
-                    <li key={measurement.id}>
-                        <MeasurementCard
-                            measurementName={measurement.name}
-                            measurementId={measurement.id}
-                            onSelect={() => {
-                                setSelectedMeasurement(measurement);
-                                setIsMeasurementModalOpen(true);
-                            }}
-                        />
-                    </li>
-                ))}
-            </ul>
+            <div className="mt-8 mb-4 flex items-center gap-4">
+                <h2 className="text-xl font-bold text-zinc-600">
+                    Measurements
+                </h2>
+                <button
+                    className="bg-hupv-blue hover:bg-hupv-blue/80 w-fit cursor-pointer rounded-lg px-2 py-1 text-white"
+                    onClick={() => {
+                        setSelectedMeasurement({
+                            id: '',
+                            name: '',
+                            type: '',
+                            displayUnits: '',
+                            podUnits: '',
+                            enumValues: [],
+                            above: { safe: 0, warning: 0 },
+                            below: { safe: 0, warning: 0 },
+                            out_of_range: [0, 0],
+                        });
+                        setIsMeasurementModalOpen(true);
+                    }}
+                >
+                    <i className="fa-solid fa-plus"></i>
+                </button>
+            </div>
+            <div className="flex flex-col gap-4">
+                <ul className="flex flex-wrap gap-4">
+                    {boardInfo.measurements.map((measurement) => (
+                        <li key={measurement.id}>
+                            <MeasurementCard
+                                measurementName={measurement.name}
+                                measurementId={measurement.id}
+                                onSelect={() => {
+                                    setSelectedMeasurement(measurement);
+                                    setIsMeasurementModalOpen(true);
+                                }}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            </div>
 
-            <Modal isOpen={isPacketModalOpen} onClose={() => setIsPacketModalOpen(false)}>
+            <Modal
+                isOpen={isPacketModalOpen}
+                onClose={() => setIsPacketModalOpen(false)}
+            >
                 {selectedPacket && (
                     <PacketForm
                         packet={selectedPacket}
@@ -98,6 +124,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                     <MeasurementForm
                         boardName={boardName}
                         measurement={selectedMeasurement}
+                        isCreating={selectedMeasurement.id === ''}
                         onSubmit={() => setIsMeasurementModalOpen(false)}
                     />
                 )}

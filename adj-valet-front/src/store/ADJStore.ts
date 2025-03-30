@@ -31,6 +31,16 @@ interface Store {
         field: keyof Board,
         value: string,
     ) => void;
+    /** Add a new measurement to a board */
+    addMeasurement: (
+        boardName: BoardName,
+        measurement: Measurement,
+    ) => void;
+    /** Remove a measurement from a board */
+    removeMeasurement: (
+        boardName: BoardName,
+        measurementId: string,
+    ) => void;
     /** Updates a specific field of a measurement */
     updateMeasurement: (
         boardName: BoardName,
@@ -115,6 +125,44 @@ export const useADJStore = create<Store>((set, get) => ({
             };
         }
 
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /**
+     * Adds a new measurement to a board
+     * @param {BoardName} boardName - Name of the board
+     * @param {Measurement} measurement - Measurement to add
+     */
+    addMeasurement: (boardName: BoardName, measurement: Measurement) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName,
+        );
+        if (boardIndex !== -1) {
+            boards[boardIndex][boardName].measurements.push(measurement);
+        }
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /**
+     * Removes a measurement from a board
+     * @param {BoardName} boardName - Name of the board
+     * @param {string} measurementId - Measurement ID
+     */
+    removeMeasurement: (boardName: BoardName, measurementId: string) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName,
+        );
+        if (boardIndex !== -1) {
+            boards[boardIndex][boardName].measurements = boards[boardIndex][boardName].measurements.filter(measurement => measurement.id !== measurementId);
+        }
         set((state) => ({
             ...state,
             boards,

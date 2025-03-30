@@ -7,65 +7,87 @@ import { useState } from 'react';
 interface Props {
     boardName: BoardName;
     measurement: Measurement;
+    isCreating: boolean;
     onSubmit: () => void;
 }
 
-export const MeasurementForm = ({ boardName, measurement, onSubmit }: Props) => {
-    const { updateMeasurement, updateRange } = useADJStore();
+export const MeasurementForm = ({
+    boardName,
+    measurement,
+    isCreating,
+    onSubmit,
+}: Props) => {
+    const { updateMeasurement, updateRange, addMeasurement, removeMeasurement } = useADJStore();
 
     const [formData, setFormData] = useState<Measurement>(measurement);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        updateMeasurement(boardName, measurement.id, 'id', formData.id);
-        updateMeasurement(boardName, measurement.id, 'name', formData.name);
-        updateMeasurement(boardName, measurement.id, 'type', formData.type);
-        updateMeasurement(
-            boardName,
-            measurement.id,
-            'displayUnits',
-            formData.displayUnits,
-        );
-        updateMeasurement(
-            boardName,
-            measurement.id,
-            'podUnits',
-            formData.podUnits,
-        );
-        updateMeasurement(
-            boardName,
-            measurement.id,
-            'enumValues',
-            formData.enumValues,
-        );
-        updateRange(
-            boardName,
-            measurement.id,
-            'above',
-            'safe',
-            String(formData.above.safe),
-        );
-        updateRange(
-            boardName,
-            measurement.id,
-            'above',
-            'warning',
-            String(formData.above.warning),
-        );
-        updateRange(
-            boardName,
-            measurement.id,
-            'below',
-            'safe',
-            String(formData.below.safe),
-        );
-        updateRange(
-            boardName,
-            measurement.id,
-            'below',
-            'warning',
-            String(formData.below.warning),
-        );
+        if (isCreating) {
+            if (!formData.id.trim()) {
+                alert('ID cannot be empty');
+                return;
+            }
+            if (!formData.name.trim()) {
+                alert('Name cannot be empty');
+                return;
+            }
+            if (!formData.type.trim()) {
+                alert('Type cannot be empty');
+                return;
+            }
+            addMeasurement(boardName, formData);
+        } else {
+            updateMeasurement(boardName, measurement.id, 'id', formData.id);
+            updateMeasurement(boardName, measurement.id, 'name', formData.name);
+            updateMeasurement(boardName, measurement.id, 'type', formData.type);
+            updateMeasurement(
+                boardName,
+                measurement.id,
+                'displayUnits',
+                formData.displayUnits,
+            );
+            updateMeasurement(
+                boardName,
+                measurement.id,
+                'podUnits',
+                formData.podUnits,
+            );
+            updateMeasurement(
+                boardName,
+                measurement.id,
+                'enumValues',
+                formData.enumValues,
+            );
+            updateRange(
+                boardName,
+                measurement.id,
+                'above',
+                'safe',
+                String(formData.above.safe),
+            );
+            updateRange(
+                boardName,
+                measurement.id,
+                'above',
+                'warning',
+                String(formData.above.warning),
+            );
+            updateRange(
+                boardName,
+                measurement.id,
+                'below',
+                'safe',
+                String(formData.below.safe),
+            );
+            updateRange(
+                boardName,
+                measurement.id,
+                'below',
+                'warning',
+                String(formData.below.warning),
+            );
+        }
         onSubmit();
     };
 
@@ -210,49 +232,69 @@ export const MeasurementForm = ({ boardName, measurement, onSubmit }: Props) => 
                             </button>
                         </details>
                     </div>
-                    <Input
-                        object={formData.above}
-                        field={'safe'}
-                        setObject={(field, value) =>
-                            updateFormField('above', field, value)
-                        }
-                        label="Above Safe"
-                    />
+                    <div className="flex w-full gap-4">
+                        <Input
+                            object={formData.above}
+                            field={'safe'}
+                            setObject={(field, value) =>
+                                updateFormField('above', field, value)
+                            }
+                            label="Above Safe"
+                            className='flex-1'
+                        />
 
-                    <Input
-                        object={formData.below}
-                        field={'safe'}
-                        setObject={(field, value) =>
-                            updateFormField('below', field, value)
-                        }
-                        label="Below Safe"
-                    />
+                        <Input
+                            object={formData.below}
+                            field={'safe'}
+                            setObject={(field, value) =>
+                                updateFormField('below', field, value)
+                            }
+                            label="Below Safe"
+                            className='flex-1'
+                        />
+                    </div>
 
-                    <Input
-                        object={formData.above}
-                        field={'warning'}
-                        setObject={(field, value) =>
-                            updateFormField('above', field, value)
-                        }
-                        label="Above Warning"
-                    />
+                    <div className="flex w-full gap-4">
+                        <Input
+                            object={formData.above}
+                            field={'warning'}
+                            setObject={(field, value) =>
+                                updateFormField('above', field, value)
+                            }
+                            label="Above Warning"
+                            className='flex-1'
+                        />
 
-                    <Input
-                        object={formData.below}
-                        field={'warning'}
-                        setObject={(field, value) =>
-                            updateFormField('below', field, value)
-                        }
-                        label="Below Warning"
-                    />
+                        <Input
+                            object={formData.below}
+                            field={'warning'}
+                            setObject={(field, value) =>
+                                updateFormField('below', field, value)
+                            }
+                            label="Below Warning"
+                            className='flex-1'
+                        />
+                    </div>
 
-                    <button
-                        type="submit"
-                        className="bg-hupv-orange/80 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
-                        onClick={handleSubmit}
-                    >
-                        Save Changes
-                    </button>
+                    <div className='flex gap-4'>
+                        <button
+                            type="button"
+                            className="bg-red-500 hover:bg-red-600 mt-4 w-fit cursor-pointer rounded-lg px-4 py-2 text-white"
+                            onClick={() => {
+                                removeMeasurement(boardName, measurement.id)
+                                onSubmit()
+                            }}
+                        >
+                            <i className="fa-solid fa-trash"></i>
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-hupv-orange/80 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
+                            onClick={handleSubmit}
+                        >
+                            Save Changes
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
