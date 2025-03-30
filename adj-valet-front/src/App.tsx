@@ -3,7 +3,7 @@ import { Content } from './layout/Content';
 import { Sidebar } from './layout/Sidebar';
 import { useADJStore } from './store/ADJStore';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { ADJ_INFO_MOCK } from './api/mock';
+import { assembleJSON, sendADJPath } from './api/api';
 
 function App() {
     const { setADJStore } = useADJStore();
@@ -17,7 +17,6 @@ function App() {
         setIsLoading(true);
         try {
             await assembleADJ();
-            // window.location.reload();
         } catch(error) {
             setErrorMessage(`${error}`);
         } finally {
@@ -26,10 +25,10 @@ function App() {
     }
 
     const assembleADJ = async () => {
-        // await sendADJPath(ADJPath);
+        await sendADJPath(ADJPath);
         localStorage.setItem('adj_path', ADJPath);
-        // const adj = await assembleJSON();
-        setADJStore(ADJ_INFO_MOCK);
+        const adj = await assembleJSON();
+        setADJStore(adj);
     }
 
     return (

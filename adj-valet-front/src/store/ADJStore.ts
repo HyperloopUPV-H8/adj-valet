@@ -9,6 +9,8 @@ import { Measurement, Range } from '../types/Measurement';
 import { GeneralInfo } from '../types/GeneralInfo';
 import { Packet } from '../types/Packet';
 
+const STORAGE_KEY = 'adj_store';
+
 /**
  * Interface that defines the store structure and methods
  * @interface Store
@@ -114,12 +116,14 @@ export const useADJStore = create<Store>((set, get) => ({
      * Sets the complete store state
      * @param {ADJ} ADJ - Complete ADJ object
      */
-    setADJStore: (ADJ: ADJ) =>
+    setADJStore: (ADJ: ADJ) => {
         set({
             general_info: ADJ.general_info,
             boards: ADJ.boards,
             board_list: ADJ.board_list,
-        }),
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(ADJ));
+    },
 
     /**
      * Updates a specific field of a board
@@ -139,10 +143,11 @@ export const useADJStore = create<Store>((set, get) => ({
             };
         }
 
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -157,10 +162,11 @@ export const useADJStore = create<Store>((set, get) => ({
         if (boardIndex !== -1) {
             boards.splice(boardIndex, 1);
         }
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -171,10 +177,11 @@ export const useADJStore = create<Store>((set, get) => ({
     addBoard: (boardName: BoardName, boardInfo: BoardInfo) => {
         const boards = get().boards;
         boards.push({ [boardName]: boardInfo });
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -190,10 +197,11 @@ export const useADJStore = create<Store>((set, get) => ({
         if (boardIndex !== -1) {
             boards[boardIndex][boardName].measurements.push(measurement);
         }
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -209,10 +217,11 @@ export const useADJStore = create<Store>((set, get) => ({
         if (boardIndex !== -1) {
             boards[boardIndex][boardName].measurements = boards[boardIndex][boardName].measurements.filter(measurement => measurement.id !== measurementId);
         }
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -245,10 +254,11 @@ export const useADJStore = create<Store>((set, get) => ({
             }
         }
 
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /** 
@@ -264,10 +274,11 @@ export const useADJStore = create<Store>((set, get) => ({
         if (boardIndex !== -1) {
             boards[boardIndex][boardName].packets.push(packet);
         }
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -283,10 +294,11 @@ export const useADJStore = create<Store>((set, get) => ({
         if (boardIndex !== -1) {
             boards[boardIndex][boardName].packets = boards[boardIndex][boardName].packets.filter(packet => packet.id !== packetId);
         }
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -313,10 +325,11 @@ export const useADJStore = create<Store>((set, get) => ({
                 };
             }
         }
-        set((state) => ({
-            ...state,
-            boards,
-        }));
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -353,10 +366,11 @@ export const useADJStore = create<Store>((set, get) => ({
             }
         }
 
-        set((state) => ({
-            ...state,
-            boards
-        }))
+        set((state) => {
+            const newState = { ...state, boards };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        })
     },
 
     /**
@@ -376,10 +390,11 @@ export const useADJStore = create<Store>((set, get) => ({
         generalInfoSection[newKey] = value;
         generalInfo[section] = generalInfoSection;
 
-        set((state) => ({
-            ...state,
-            general_info: generalInfo,
-        }));
+        set((state) => {
+            const newState = { ...state, general_info: generalInfo };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+            return newState;
+        });
     },
 
     /**
@@ -431,3 +446,9 @@ export const useADJStore = create<Store>((set, get) => ({
         });
     },
 }));
+
+// Cargar el estado inicial desde localStorage
+const storedState = localStorage.getItem(STORAGE_KEY);
+if (storedState) {
+    useADJStore.setState(JSON.parse(storedState));
+}

@@ -30,6 +30,10 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
     const [originalBoardName] = useState(boardName);
     const [formData, setFormData] = useState<BoardInfo>(boardInfo);
 
+    useEffect(() => {
+        setFormData(boardInfo);
+    }, [boardInfo]);
+
     const handleBoardUpdate = (field: keyof BoardInfo, value: string) => {
         setFormData(prev => ({
             ...prev,
@@ -86,7 +90,7 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
                     className='w-[30rem]'
                 />
 
-                <h2 className="mt-8 mb-2 text-xl font-bold text-zinc-600">
+                <h2 className="mt-4 mb-2 text-xl font-bold text-zinc-600">
                     Board IP
                 </h2>
                 <Input
@@ -98,7 +102,7 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
 
                 <button
                     type="submit"
-                    className="bg-hupv-orange/90 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
+                    className="bg-hupv-orange/90 hover:bg-hupv-orange mt-4 w-fit cursor-pointer rounded-lg px-4 py-2 text-white"
                 >
                     Save Changes
                 </button>
