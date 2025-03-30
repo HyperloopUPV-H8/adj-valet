@@ -16,7 +16,7 @@ interface Props {
 
 export const BoardForm = ({ boardName, boardInfo }: Props) => {
     const { updateBoard } = useADJStore();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPacketModalOpen, setIsPacketModalOpen] = useState(false);
     const [selectedPacket, setSelectedPacket] = useState<Packet | null>(null);
     const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
     const [selectedMeasurement, setSelectedMeasurement] =
@@ -55,7 +55,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                             packetName={packet.name}
                             onSelect={() => {
                                 setSelectedPacket(packet);
-                                setIsModalOpen(true);
+                                setIsPacketModalOpen(true);
                             }}
                         />
                     </li>
@@ -80,12 +80,12 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                 ))}
             </ul>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <Modal isOpen={isPacketModalOpen} onClose={() => setIsPacketModalOpen(false)}>
                 {selectedPacket && (
                     <PacketForm
                         packet={selectedPacket}
                         boardName={boardName}
-                        onSubmit={() => setIsModalOpen(false)}
+                        onSubmit={() => setIsPacketModalOpen(false)}
                     />
                 )}
             </Modal>
@@ -98,6 +98,7 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
                     <MeasurementForm
                         boardName={boardName}
                         measurement={selectedMeasurement}
+                        onSubmit={() => setIsMeasurementModalOpen(false)}
                     />
                 )}
             </Modal>

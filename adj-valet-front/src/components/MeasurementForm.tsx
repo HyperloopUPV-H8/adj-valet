@@ -7,16 +7,16 @@ import { useState } from 'react';
 interface Props {
     boardName: BoardName;
     measurement: Measurement;
+    onSubmit: () => void;
 }
 
-export const MeasurementForm = ({ boardName, measurement }: Props) => {
+export const MeasurementForm = ({ boardName, measurement, onSubmit }: Props) => {
     const { updateMeasurement, updateRange } = useADJStore();
 
     const [formData, setFormData] = useState<Measurement>(measurement);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         updateMeasurement(boardName, measurement.id, 'id', formData.id);
         updateMeasurement(boardName, measurement.id, 'name', formData.name);
         updateMeasurement(boardName, measurement.id, 'type', formData.type);
@@ -66,6 +66,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
             'warning',
             String(formData.below.warning),
         );
+        onSubmit();
     };
 
     const updateFormField = (
@@ -248,6 +249,7 @@ export const MeasurementForm = ({ boardName, measurement }: Props) => {
                     <button
                         type="submit"
                         className="bg-hupv-orange/80 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
+                        onClick={handleSubmit}
                     >
                         Save Changes
                     </button>

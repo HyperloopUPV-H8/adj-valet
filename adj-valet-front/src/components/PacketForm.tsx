@@ -69,7 +69,7 @@ export const PacketForm = ({ boardName, packet, onSubmit }: Props) => {
                     <div className="flex gap-4">
                         <div className="mt-4 flex-1">
                             <label className="text-zinc-600">Packet Measurements</label>
-                            <ul className="mt-2 flex flex-col gap-2">
+                            <ul className="mt-2 flex flex-col gap-2 max-h-[300px] overflow-y-auto">
                                 {formData.variables.map((variable, index) => (
                                     <li 
                                         key={index}
