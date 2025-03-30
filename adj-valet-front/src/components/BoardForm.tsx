@@ -13,9 +13,10 @@ import { MeasurementCard } from './MeasurementCard';
 interface Props {
     boardName: BoardName;
     boardInfo: BoardInfo;
+    setSelectedSection: (section: string) => void;
 }
 
-export const BoardForm = ({ boardName, boardInfo }: Props) => {
+export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) => {
     const { updateBoard, removeBoard, addBoard, boards } = useADJStore();
     const [isPacketModalOpen, setIsPacketModalOpen] = useState(false);
     const [selectedPacket, setSelectedPacket] = useState<Packet | null>(null);
@@ -27,12 +28,22 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
     const [filteredMeasurements, setFilteredMeasurements] = useState(boardInfo.measurements);
     const [filteredPackets, setFilteredPackets] = useState(boardInfo.packets);
     const [originalBoardName] = useState(boardName);
+    const [formData, setFormData] = useState<BoardInfo>(boardInfo);
 
     const handleBoardUpdate = (field: keyof BoardInfo, value: string) => {
-        if (field === 'board_id' && String(value) !== String(boardInfo.board_id)) {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (String(formData.board_id) !== String(boardInfo.board_id)) {
             const existingBoard = boards.find(board => {
                 const boardKey = Object.keys(board)[0];
-                return board[boardKey].board_id === Number(value) && boardKey !== originalBoardName;
+                return board[boardKey].board_id === Number(formData.board_id) && boardKey !== originalBoardName;
             });
 
             if (existingBoard) {
@@ -41,13 +52,13 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
             }
 
             removeBoard(originalBoardName);
-            addBoard(String(value), {
-                ...boardInfo,
-                board_id: Number(value)
-            });
+            addBoard(String(formData.board_id), formData);
         } else {
-            updateBoard(boardName, field, value);
+            updateBoard(boardName, 'board_id', String(formData.board_id));
+            updateBoard(boardName, 'board_ip', formData.board_ip);
         }
+
+        setSelectedSection('general_info');
     };
 
     useEffect(() => {
@@ -66,27 +77,32 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
 
     return (
         <div className="flex w-full flex-col">
-            <h2 className="mb-2 text-xl font-bold text-zinc-600">Board ID</h2>
-            <Input
-                object={boardInfo}
-                field={'board_id'}
-                setObject={(field, value) =>
-                    handleBoardUpdate(field, value)
-                }
-                className='w-[30rem]'
-            />
+            <form onSubmit={handleSubmit}>
+                <h2 className="mb-2 text-xl font-bold text-zinc-600">Board ID</h2>
+                <Input
+                    object={formData}
+                    field={'board_id'}
+                    setObject={(field, value) => handleBoardUpdate(field, value)}
+                    className='w-[30rem]'
+                />
 
-            <h2 className="mt-8 mb-2 text-xl font-bold text-zinc-600">
-                Board IP
-            </h2>
-            <Input
-                object={boardInfo}
-                field={'board_ip'}
-                setObject={(field, value) =>
-                    updateBoard(boardName, field, value)
-                }
-                className='w-[30rem]'
-            />
+                <h2 className="mt-8 mb-2 text-xl font-bold text-zinc-600">
+                    Board IP
+                </h2>
+                <Input
+                    object={formData}
+                    field={'board_ip'}
+                    setObject={(field, value) => handleBoardUpdate(field, value)}
+                    className='w-[30rem]'
+                />
+
+                <button
+                    type="submit"
+                    className="bg-hupv-orange/90 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
+                >
+                    Save Changes
+                </button>
+            </form>
 
             <div className="flex gap-4 mt-8 mb-4 items-center">
                 <h2 className="text-xl font-bold text-zinc-600">

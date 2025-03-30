@@ -19,7 +19,16 @@ export const PacketForm = ({ boardName, packet, onSubmit, isCreating }: Props) =
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Check if a packet with the same ID already exists
+        if (!formData.id.trim()) {
+            alert('El ID no puede estar vacío');
+            return;
+        }
+
+        if (!formData.name.trim()) {
+            alert('El nombre no puede estar vacío'); 
+            return;
+        }
+
         const boardIndex = boards.findIndex(
             (board) => Object.keys(board)[0] === boardName
         );

@@ -9,14 +9,14 @@ interface Props {
 }
 
 export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
-    const { boards, assembleADJ } = useADJStore();
+    const { boards, assembleADJ, addBoard } = useADJStore();
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
     const onClearADJPath = () => {
         localStorage.removeItem('adj_path');
         window.location.reload();
-    } 
+    };
 
     const onSaveADJ = async () => {
         try {
@@ -25,35 +25,38 @@ export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
             setIsSuccess(true);
             setTimeout(() => {
                 setIsSuccess(false);
-            }, 2000)
-        } catch(error) {
+            }, 2000);
+        } catch (error) {
             setErrorMessage(`${error}`);
             setTimeout(() => {
                 setErrorMessage('');
-            }, 2000)
+            }, 2000);
         }
-    }
+    };
 
     return (
         <section className="bg-hupv-blue shadow-large flex h-full w-sm flex-col gap-4 p-4">
+            {errorMessage && (
+                <p className="font-bold text-red-500">{errorMessage}</p>
+            )}
 
-            {
-                errorMessage && <p className='font-bold text-red-500'>
-                    { errorMessage }
-                </p>
-            }
-
-            {
-                isSuccess && <p className='font-bold text-green-500'>
+            {isSuccess && (
+                <p className="font-bold text-green-500">
                     ADJ updated successfully
                 </p>
-            }
+            )}
 
-            <div className='flex gap-2 self-end'>
-                <button className="bg-green-500 align-center flex w-fit cursor-pointer rounded-full p-2 text-white" onClick={() => onSaveADJ()}>
+            <div className="flex gap-2 self-end">
+                <button
+                    className="align-center flex w-fit cursor-pointer rounded-full bg-green-500 p-2 text-white"
+                    onClick={() => onSaveADJ()}
+                >
                     <i className="fa-solid fa-floppy-disk text-2xl"></i>
                 </button>
-                <button className="bg-hupv-orange align-center flex w-fit cursor-pointer rounded-full p-2 text-white" onClick={() => onClearADJPath()}>
+                <button
+                    className="bg-hupv-orange align-center flex w-fit cursor-pointer rounded-full p-2 text-white"
+                    onClick={() => onClearADJPath()}
+                >
                     <i className="fa-solid fa-gear text-2xl"></i>
                 </button>
             </div>
@@ -85,6 +88,20 @@ export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
                     })}
                 </ul>
             </div>
+
+            <button
+                className="bg-hupv-orange align-center flex w-fit cursor-pointer self-end rounded-full p-3 text-white"
+                onClick={() =>
+                    addBoard('New Board', {
+                        board_id: Math.floor(Math.random() * 1000000),
+                        board_ip: '',
+                        packets: [],
+                        measurements: [],
+                    })
+                }
+            >
+                <i className="fa-solid fa-plus"></i>
+            </button>
         </section>
     );
 };

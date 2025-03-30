@@ -66,7 +66,7 @@ function App() {
                         }
                     ></Sidebar>
 
-                    <Content selectedSection={selectedSection}></Content>
+                    <Content selectedSection={selectedSection} setSelectedSection={setSelectedSection}></Content>
                 </div>
             )}
         </div>

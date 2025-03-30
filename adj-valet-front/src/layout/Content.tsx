@@ -5,10 +5,11 @@ import { Board, BoardName, BoardInfo } from '../types/Board';
 
 interface Props {
     selectedSection: string;
+    setSelectedSection: (section: string) => void;
 }
 
-export const Content = ({ selectedSection }: Props) => {
-    const { boards } = useADJStore();
+export const Content = ({ selectedSection, setSelectedSection }: Props) => {
+    const { boards, removeBoard } = useADJStore();
 
     if (selectedSection === 'general_info') {
         return <GeneralInfoForm />;
@@ -20,13 +21,25 @@ export const Content = ({ selectedSection }: Props) => {
         const selectedBoardInfo = selectedBoard[selectedBoardName] as BoardInfo;
 
         return (
-            <div className="w-full overflow-scroll pt-12 px-12">
-                <h2 className="text-2xl font-bold mb-8">
-                    Board {selectedBoardName}
-                </h2>
+            <div className="w-full overflow-scroll px-12 pt-12">
+                <div className="mb-8 flex items-center gap-4">
+                    <h2 className="text-2xl font-bold">
+                        Board {selectedBoardName}
+                    </h2>
+                    <button
+                        className="flex cursor-pointer items-center gap-2 rounded-full bg-red-500 p-2 text-white"
+                        onClick={() => {    
+                            removeBoard(selectedBoardName);
+                            setSelectedSection('general_info');                            
+                        }}
+                    >
+                        <i className="fa-solid fa-trash"></i>
+                    </button>
+                </div>
                 <BoardForm
                     boardName={selectedBoardName}
                     boardInfo={selectedBoardInfo}
+                    setSelectedSection={setSelectedSection}
                 />
             </div>
         );
