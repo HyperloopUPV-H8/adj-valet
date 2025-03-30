@@ -41,7 +41,25 @@ export const ADJ_INFO_MOCK: ADJ = {
                         id: "05",
                         type: "Data",
                         name: "Sensor Data",
-                        variables: []
+                        variables: ["Temperature Sensor"]
+                    },
+                    {
+                        id: "06", 
+                        type: "Control",
+                        name: "Temperature Control",
+                        variables: ["Temperature Sensor"]
+                    },
+                    {
+                        id: "07",
+                        type: "Status",
+                        name: "System Status",
+                        variables: ["Temperature Sensor"]
+                    },
+                    {
+                        id: "08",
+                        type: "Diagnostic",
+                        name: "Temperature Diagnostics",
+                        variables: ["Temperature Sensor"]
                     }
                 ]
             }
@@ -72,9 +90,27 @@ export const ADJ_INFO_MOCK: ADJ = {
                 packets: [
                     {
                         id: "302",
+                        type: "Data", 
+                        name: "Pressure Data",
+                        variables: ["Pressure Sensor"]
+                    },
+                    {
+                        id: "303",
                         type: "Data",
-                        name: "Sensor Data",
-                        variables: []
+                        name: "Control Data",
+                        variables: ["Pressure Sensor"]
+                    },
+                    {
+                        id: "304", 
+                        type: "Data",
+                        name: "Monitoring Data",
+                        variables: ["Pressure Sensor"]
+                    },
+                    {
+                        id: "305",
+                        type: "Data",
+                        name: "Diagnostic Data",
+                        variables: ["Pressure Sensor"]
                     }
                 ]
             }
@@ -106,8 +142,26 @@ export const ADJ_INFO_MOCK: ADJ = {
                     {
                         id: "200",
                         type: "Data",
-                        name: "Sensor Data",
-                        variables: []
+                        name: "Sensor Data", 
+                        variables: ["Humidity Sensor"]
+                    },
+                    {
+                        id: "201",
+                        type: "Data",
+                        name: "Control Status",
+                        variables: ["Humidity Sensor"]
+                    },
+                    {
+                        id: "202",
+                        type: "Data",
+                        name: "System Metrics",
+                        variables: ["Humidity Sensor"]
+                    },
+                    {
+                        id: "203",
+                        type: "Data",
+                        name: "Performance Data",
+                        variables: ["Humidity Sensor"]
                     }
                 ]
             }
