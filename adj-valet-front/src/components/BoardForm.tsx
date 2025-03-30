@@ -57,7 +57,13 @@ export const BoardForm = ({ boardName, boardInfo }: Props) => {
             </ul>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                {selectedPacket && <PacketForm packet={selectedPacket} />}
+                {selectedPacket && (
+                    <PacketForm
+                        packet={selectedPacket}
+                        boardName={boardName}
+                        onSubmit={() => setIsModalOpen(false)}
+                    />
+                )}
             </Modal>
         </div>
     );

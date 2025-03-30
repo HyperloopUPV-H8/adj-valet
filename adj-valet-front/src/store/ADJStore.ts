@@ -7,6 +7,7 @@ import { ADJ } from '../types/ADJ';
 import { Board, BoardInfo, BoardName } from '../types/Board';
 import { Measurement, Range } from '../types/Measurement';
 import { GeneralInfo } from '../types/GeneralInfo';
+import { Packet } from '../types/Packet';
 
 /**
  * Interface that defines the store structure and methods
@@ -35,6 +36,13 @@ interface Store {
         boardName: BoardName,
         measurementId: string,
         field: keyof Measurement,
+        value: unknown,
+    ) => void;
+    /** Updates a specific field of a packet */
+    updatePacketField: (
+        boardName: BoardName,
+        packetId: string,
+        field: keyof Packet,
         value: unknown,
     ) => void;
     /** Updates a specific field of a measurement range */
@@ -143,6 +151,36 @@ export const useADJStore = create<Store>((set, get) => ({
             }
         }
 
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /**
+     * Updates a specific field of a packet
+     * @param {BoardName} boardName - Name of the board
+     * @param {string} packetId - Packet ID
+     * @param {keyof Packet} field - Field to update
+     * @param {unknown} value - New value
+     */
+    updatePacketField: (boardName: BoardName, packetId: string, field: keyof Packet, value: unknown) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName,
+        );
+        if (boardIndex !== -1) {
+            const boardInfo = boards[boardIndex][boardName] as BoardInfo;
+            const packetIndex = boardInfo.packets.findIndex(
+                (packet) => packet.id === packetId,
+            );
+            if (packetIndex !== -1) {
+                boardInfo.packets[packetIndex] = {
+                    ...boardInfo.packets[packetIndex],
+                    [field]: value,
+                };
+            }
+        }
         set((state) => ({
             ...state,
             boards,
