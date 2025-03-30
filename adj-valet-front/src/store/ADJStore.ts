@@ -31,6 +31,10 @@ interface Store {
         field: keyof Board,
         value: string,
     ) => void;
+    /** Removes a board */
+    removeBoard: (boardName: BoardName) => void;
+    /** Adds a new board */
+    addBoard: (boardName: BoardName, boardInfo: BoardInfo) => void;
     /** Add a new measurement to a board */
     addMeasurement: (
         boardName: BoardName,
@@ -47,6 +51,16 @@ interface Store {
         measurementId: string,
         field: keyof Measurement,
         value: unknown,
+    ) => void;
+    /** Add packet to a board */
+    addPacket: (
+        boardName: BoardName,
+        packet: Packet,
+    ) => void;
+    /** Remove packet from a board */
+    removePacket: (
+        boardName: BoardName,
+        packetId: string,
     ) => void;
     /** Updates a specific field of a packet */
     updatePacketField: (
@@ -132,6 +146,38 @@ export const useADJStore = create<Store>((set, get) => ({
     },
 
     /**
+     * Removes a board
+     * @param {BoardName} boardName - Name of the board to remove
+     */
+    removeBoard: (boardName: BoardName) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName,
+        );
+        if (boardIndex !== -1) {
+            boards.splice(boardIndex, 1);
+        }
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /**
+     * Adds a new board
+     * @param {BoardName} boardName - Name of the board
+     * @param {BoardInfo} boardInfo - Board information
+     */
+    addBoard: (boardName: BoardName, boardInfo: BoardInfo) => {
+        const boards = get().boards;
+        boards.push({ [boardName]: boardInfo });
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /**
      * Adds a new measurement to a board
      * @param {BoardName} boardName - Name of the board
      * @param {Measurement} measurement - Measurement to add
@@ -199,6 +245,44 @@ export const useADJStore = create<Store>((set, get) => ({
             }
         }
 
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /** 
+     * Adds a new packet to a board
+     * @param {BoardName} boardName - Name of the board
+     * @param {Packet} packet - Packet to add
+     */
+    addPacket: (boardName: BoardName, packet: Packet) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName,
+        );
+        if (boardIndex !== -1) {
+            boards[boardIndex][boardName].packets.push(packet);
+        }
+        set((state) => ({
+            ...state,
+            boards,
+        }));
+    },
+
+    /**
+     * Removes a packet from a board
+     * @param {BoardName} boardName - Name of the board
+     * @param {string} packetId - Packet ID
+     */
+    removePacket: (boardName: BoardName, packetId: string) => {
+        const boards = get().boards;
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName,
+        );
+        if (boardIndex !== -1) {
+            boards[boardIndex][boardName].packets = boards[boardIndex][boardName].packets.filter(packet => packet.id !== packetId);
+        }
         set((state) => ({
             ...state,
             boards,

@@ -1,4 +1,4 @@
-import { BoardName } from '../types/Board';
+import { Board, BoardName } from '../types/Board';
 import { Measurement } from '../types/Measurement';
 import { Input } from './Input';
 import { useADJStore } from '../store/ADJStore';
@@ -17,76 +17,96 @@ export const MeasurementForm = ({
     isCreating,
     onSubmit,
 }: Props) => {
-    const { updateMeasurement, updateRange, addMeasurement, removeMeasurement } = useADJStore();
-
+    const { boards, updateMeasurement, updateRange, removeMeasurement, addMeasurement } = useADJStore();
     const [formData, setFormData] = useState<Measurement>(measurement);
+    const [originalId] = useState(measurement.id);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate required fields
+        if (!formData.id.trim()) {
+            alert('ID cannot be empty');
+            return;
+        }
+        if (!formData.name.trim()) {
+            alert('Name cannot be empty');
+            return;
+        }
+        if (!formData.type.trim()) {
+            alert('Type cannot be empty');
+            return;
+        }
+
+        const boardIndex = boards.findIndex(
+            (board: Board) => Object.keys(board)[0] === boardName
+        );
+        const existingMeasurement = boards[boardIndex][boardName].measurements.find(
+            (m: Measurement) => m.id === formData.id && m.id !== originalId
+        );
+
+        if (existingMeasurement) {
+            alert('A measurement with this ID already exists. Please choose a different ID.');
+            return;
+        }
+
         if (isCreating) {
-            if (!formData.id.trim()) {
-                alert('ID cannot be empty');
-                return;
-            }
-            if (!formData.name.trim()) {
-                alert('Name cannot be empty');
-                return;
-            }
-            if (!formData.type.trim()) {
-                alert('Type cannot be empty');
-                return;
-            }
             addMeasurement(boardName, formData);
         } else {
-            updateMeasurement(boardName, measurement.id, 'id', formData.id);
-            updateMeasurement(boardName, measurement.id, 'name', formData.name);
-            updateMeasurement(boardName, measurement.id, 'type', formData.type);
-            updateMeasurement(
-                boardName,
-                measurement.id,
-                'displayUnits',
-                formData.displayUnits,
-            );
-            updateMeasurement(
-                boardName,
-                measurement.id,
-                'podUnits',
-                formData.podUnits,
-            );
-            updateMeasurement(
-                boardName,
-                measurement.id,
-                'enumValues',
-                formData.enumValues,
-            );
-            updateRange(
-                boardName,
-                measurement.id,
-                'above',
-                'safe',
-                String(formData.above.safe),
-            );
-            updateRange(
-                boardName,
-                measurement.id,
-                'above',
-                'warning',
-                String(formData.above.warning),
-            );
-            updateRange(
-                boardName,
-                measurement.id,
-                'below',
-                'safe',
-                String(formData.below.safe),
-            );
-            updateRange(
-                boardName,
-                measurement.id,
-                'below',
-                'warning',
-                String(formData.below.warning),
-            );
+            if (originalId !== formData.id) {
+                removeMeasurement(boardName, originalId);
+                addMeasurement(boardName, formData);
+            } else {
+                updateMeasurement(boardName, measurement.id, 'id', formData.id);
+                updateMeasurement(boardName, measurement.id, 'name', formData.name);
+                updateMeasurement(boardName, measurement.id, 'type', formData.type);
+                updateMeasurement(
+                    boardName,
+                    measurement.id,
+                    'displayUnits',
+                    formData.displayUnits,
+                );
+                updateMeasurement(
+                    boardName,
+                    measurement.id,
+                    'podUnits',
+                    formData.podUnits,
+                );
+                updateMeasurement(
+                    boardName,
+                    measurement.id,
+                    'enumValues',
+                    formData.enumValues,
+                );
+                updateRange(
+                    boardName,
+                    measurement.id,
+                    'above',
+                    'safe',
+                    String(formData.above.safe),
+                );
+                updateRange(
+                    boardName,
+                    measurement.id,
+                    'above',
+                    'warning',
+                    String(formData.above.warning),
+                );
+                updateRange(
+                    boardName,
+                    measurement.id,
+                    'below',
+                    'safe',
+                    String(formData.below.safe),
+                );
+                updateRange(
+                    boardName,
+                    measurement.id,
+                    'below',
+                    'warning',
+                    String(formData.below.warning),
+                );
+            }
         }
         onSubmit();
     };
@@ -277,16 +297,18 @@ export const MeasurementForm = ({
                     </div>
 
                     <div className='flex gap-4'>
-                        <button
-                            type="button"
-                            className="bg-red-500 hover:bg-red-600 mt-4 w-fit cursor-pointer rounded-lg px-4 py-2 text-white"
-                            onClick={() => {
-                                removeMeasurement(boardName, measurement.id)
-                                onSubmit()
-                            }}
-                        >
-                            <i className="fa-solid fa-trash"></i>
-                        </button>
+                        {!isCreating && (
+                            <button
+                                type="button"
+                                className="bg-red-500 hover:bg-red-600 mt-4 w-fit cursor-pointer rounded-lg px-4 py-2 text-white"
+                                onClick={() => {
+                                    removeMeasurement(boardName, measurement.id)
+                                    onSubmit()
+                                }}
+                            >
+                                <i className="fa-solid fa-trash"></i>
+                            </button>
+                        )}
                         <button
                             type="submit"
                             className="bg-hupv-orange/80 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"

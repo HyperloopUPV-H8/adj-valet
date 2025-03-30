@@ -7,24 +7,49 @@ interface Props {
     boardName: string;
     packet: Packet;
     onSubmit: () => void;
+    isCreating: boolean;
 }
 
-export const PacketForm = ({ boardName, packet, onSubmit }: Props) => {
-    const { boards, updatePacketField } = useADJStore();
+export const PacketForm = ({ boardName, packet, onSubmit, isCreating }: Props) => {
+    const { boards, updatePacketField, removePacket, addPacket } = useADJStore();
     const [formData, setFormData] = useState(packet);
     const [searchTerm, setSearchTerm] = useState('');
+    const [originalId] = useState(packet.id);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        updatePacketField(boardName, packet.id, 'id', formData.id);
-        updatePacketField(boardName, packet.id, 'name', formData.name);
-        updatePacketField(boardName, packet.id, 'type', formData.type);
-        updatePacketField(
-            boardName,
-            packet.id,
-            'variables',
-            formData.variables
+
+        // Check if a packet with the same ID already exists
+        const boardIndex = boards.findIndex(
+            (board) => Object.keys(board)[0] === boardName
         );
+        const existingPacket = boards[boardIndex][boardName].packets.find(
+            p => p.id === formData.id && p.id !== originalId
+        );
+
+        if (existingPacket) {
+            alert('A packet with this ID already exists. Please choose a different ID.');
+            return;
+        }
+
+        if (isCreating) {
+            addPacket(boardName, formData);
+        } else {
+            if (originalId !== formData.id) {
+                removePacket(boardName, originalId);
+                addPacket(boardName, formData);
+            } else {
+                updatePacketField(boardName, packet.id, 'id', formData.id);
+                updatePacketField(boardName, packet.id, 'name', formData.name);
+                updatePacketField(boardName, packet.id, 'type', formData.type);
+                updatePacketField(
+                    boardName,
+                    packet.id,
+                    'variables',
+                    formData.variables
+                );
+            }
+        }
         onSubmit();
     };
 
@@ -122,13 +147,27 @@ export const PacketForm = ({ boardName, packet, onSubmit }: Props) => {
                         </div>
                     </div>
 
-                    <button
-                        type="submit"
-                        className="bg-hupv-orange/90 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
-                        onClick={handleSubmit}
-                    >
-                        Save Changes
-                    </button>
+                    <div className='flex gap-4'>
+                        {!isCreating && (
+                            <button
+                                type="button"
+                                className="bg-red-500 hover:bg-red-600 mt-4 w-fit cursor-pointer rounded-lg px-4 py-2 text-white"
+                                onClick={() => {
+                                    removePacket(boardName, packet.id)
+                                    onSubmit()
+                                }}
+                            >
+                                <i className="fa-solid fa-trash"></i>
+                            </button>
+                        )}
+                        <button
+                            type="submit"
+                            className="bg-hupv-orange/90 hover:bg-hupv-orange mt-4 w-full cursor-pointer rounded-lg px-4 py-2 text-white"
+                            onClick={handleSubmit}
+                        >
+                            Save Changes
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

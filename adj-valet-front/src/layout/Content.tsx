@@ -20,7 +20,7 @@ export const Content = ({ selectedSection }: Props) => {
         const selectedBoardInfo = selectedBoard[selectedBoardName] as BoardInfo;
 
         return (
-            <div className="w-full overflow-scroll pt-12 pl-12">
+            <div className="w-full overflow-scroll pt-12 px-12">
                 <h2 className="text-2xl font-bold mb-8">
                     Board {selectedBoardName}
                 </h2>
