@@ -13,7 +13,8 @@
     "@tailwindcss/vite": "^4.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4.0.3"
+    "tailwindcss": "^4.0.3",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -31,6 +32,11 @@
     "vite": "^6.1.0"
   },
   "prettier": {
-    "plugins": ["prettier-plugin-tailwindcss"]
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ],
+    "tabWidth": 4,
+    "singleQuote": true,
+    "semi": true
   }
 }

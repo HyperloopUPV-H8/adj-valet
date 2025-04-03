@@ -1,6 +1,6 @@
-export interface Packet {
-    id: number,
-    type: string,
-    name: string,
-    variables: { [key: string]: string }[]
-}
+export type Packet = {
+    id: string;
+    type: string;
+    name: string;
+    variables: string[];
+};
