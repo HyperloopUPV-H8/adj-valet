@@ -3,7 +3,6 @@ import os
 from typing import Any, Dict, List
 
 def read_general_info(adj_path: str) -> Dict[str, Any]:
-    """Load general info from ADJ/general_info.json."""
     general_info_path = os.path.join(adj_path, "general_info.json")
     if not os.path.isfile(general_info_path):
         raise FileNotFoundError(f"General info file not found: {general_info_path}")
@@ -11,7 +10,6 @@ def read_general_info(adj_path: str) -> Dict[str, Any]:
         return json.load(f)
 
 def read_board_list(adj_path: str) -> Dict[str, str]:
-    """Load board list from ADJ/boards.json."""
     boards_list_path = os.path.join(adj_path, "boards.json")
     if not os.path.isfile(boards_list_path):
         raise FileNotFoundError(f"Boards list file not found: {boards_list_path}")
@@ -19,10 +17,6 @@ def read_board_list(adj_path: str) -> Dict[str, str]:
         return json.load(f)
 
 def read_board_data(adj_path: str) -> Dict[str, Dict[str, Any]]:
-    """
-    For each board in ADJ/boards, load the board main JSON and then
-    read measurements and packets files using the relative paths specified.
-    """
     boards_dir = os.path.join(adj_path, "boards")
     board_data: Dict[str, Dict[str, Any]] = {}
     if not os.path.isdir(boards_dir):
@@ -33,14 +27,12 @@ def read_board_data(adj_path: str) -> Dict[str, Dict[str, Any]]:
         if not os.path.isdir(board_folder):
             continue
 
-        # Load board main JSON
         board_main_file = os.path.join(board_folder, f"{board_name}.json")
         if not os.path.isfile(board_main_file):
             raise FileNotFoundError(f"Board main file not found: {board_main_file}")
         with open(board_main_file, 'r') as f:
             board_main = json.load(f)
 
-        # Process measurements: each relative path points to a file with an array of measurements.
         measurements: List[Any] = []
         for rel_path in board_main.get("measurements", []):
             meas_file = os.path.join(board_folder, rel_path)
@@ -54,7 +46,6 @@ def read_board_data(adj_path: str) -> Dict[str, Dict[str, Any]]:
                     raise ValueError(f"Expected a list in measurement file: {meas_file}")
         board_main["measurements"] = measurements
 
-        # Process packets: each relative path points to a file with an array of packets.
         packets: List[Any] = []
         for rel_path in board_main.get("packets", []):
             packet_file = os.path.join(board_folder, rel_path)
