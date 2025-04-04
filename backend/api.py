@@ -1,9 +1,18 @@
 from fastapi import FastAPI, Request, HTTPException
-from config import ADJ_PATH
+from fastapi.middleware.cors import CORSMiddleware
+from path import ADJ_PATH
 from json_assembler import assemble_monojson
 from diff_merge import merge_changes
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5174"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/path")
 async def set_adj_path(request: Request):
