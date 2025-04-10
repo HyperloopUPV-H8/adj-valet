@@ -67,15 +67,15 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
 
     useEffect(() => {
         setFilteredMeasurements(boardInfo.measurements.filter(measurement => 
-            measurement.name.toLowerCase().includes(measurementSearch.toLowerCase()) ||
-            measurement.id.toLowerCase().includes(measurementSearch.toLowerCase())
+            measurement.name?.toLowerCase().includes(measurementSearch.toLowerCase()) ||
+            measurement.id?.toLowerCase().includes(measurementSearch.toLowerCase())
         ));
     }, [measurementSearch, boardInfo.measurements]);
 
     useEffect(() => {
         setFilteredPackets(boardInfo.packets.filter(packet => 
-            packet.name.toLowerCase().includes(packetSearch.toLowerCase()) ||
-            packet.id.toLowerCase().includes(packetSearch.toLowerCase())
+            packet.name?.toLowerCase().includes(packetSearch.toLowerCase()) ||
+            packet.id?.toLowerCase().includes(packetSearch.toLowerCase())
         ));
     }, [packetSearch, boardInfo.packets]);
 
