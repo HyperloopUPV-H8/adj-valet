@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from path import ADJ_PATH
 from json_assembler import assemble_monojson
 from diff_merge import merge_changes
+from file_writer import save_general_info, save_board_list, save_boards
 
 app = FastAPI()
 
@@ -36,4 +37,8 @@ async def update_json(request: Request):
         raise HTTPException(status_code=400, detail="ADJ_PATH is not set.")
     current_json = assemble_monojson(ADJ_PATH.value)
     new_json = merge_changes(current_json, updated_fields)
+
+    save_general_info(ADJ_PATH.value, new_json["general_info"])
+    save_board_list(ADJ_PATH.value, new_json["board_list"])
+    save_boards(ADJ_PATH.value, new_json["boards"])
     return new_json
