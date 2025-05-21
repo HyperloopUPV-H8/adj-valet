@@ -20,39 +20,40 @@ def save_boards(adj_path: str, boards: List[Dict[str, Any]]) -> None:
         if not os.path.isdir(board_dir):
             raise FileNotFoundError(f"Boards directory not found: {board_dir}")
 
-        # 1) Read the board's main JSON to determine file paths
-        main_json_path = os.path.join(board_dir, f"{board_name}.json")
-        with open(main_json_path, "r", encoding="utf-8") as f:
-            board_main = json.load(f)
-        
-        # Get paths for measurements and packets
-        meas_file = board_main.get("measurements", [])[0] if board_main.get("measurements") else "measurements.json"
-        pkt_file = board_main.get("packets", [])[0] if board_main.get("packets") else "packets.json"
-        
+        # Always write measurements to <BOARD_NAME>_measurements.json
+        measurements = board_obj.get("measurements", [])
+        meas_file = f"{board_name}_measurements.json"
         meas_path = os.path.join(board_dir, meas_file)
-        pkt_path = os.path.join(board_dir, pkt_file)
-
-        # 2) Overwrite measurements file
         with open(meas_path, "w", encoding="utf-8") as mf:
-            json.dump(board_obj.get("measurements", []), mf, indent=2)
+            json.dump(measurements, mf, indent=2)
 
-        # 3) Overwrite packets file (unwrap from {"packet_id": {...}})
-        packets = [
-            pkt["packet_id"]
-            for pkt in board_obj.get("packets", [])
-            if "packet_id" in pkt
-        ]
-        with open(pkt_path, "w", encoding="utf-8") as pf:
-            json.dump(packets, pf, indent=2)
+        # Split packets into packets.json (type 'data') and orders.json (type 'order')
+        packets = [pkt["packet_id"] for pkt in board_obj.get("packets", []) if "packet_id" in pkt]
+        data_packets = [pkt for pkt in packets if pkt.get("type") == "data"]
+        order_packets = [pkt for pkt in packets if pkt.get("type") == "order"]
 
-        # 3) Update the board’s main JSON to point at these files + id/ip
+        packet_files = []
+        if data_packets:
+            pkt_file = "packets.json"
+            pkt_path = os.path.join(board_dir, pkt_file)
+            with open(pkt_path, "w", encoding="utf-8") as pf:
+                json.dump(data_packets, pf, indent=2)
+            packet_files.append(pkt_file)
+        if order_packets:
+            ord_file = "orders.json"
+            ord_path = os.path.join(board_dir, ord_file)
+            with open(ord_path, "w", encoding="utf-8") as of:
+                json.dump(order_packets, of, indent=2)
+            packet_files.append(ord_file)
+
+        # Update the board’s main JSON to point at these files + id/ip
         main_json_path = os.path.join(board_dir, f"{board_name}.json")
         with open(main_json_path, "r+", encoding="utf-8") as f:
             board_main = json.load(f)
             board_main["board_id"]       = board_obj.get("board_id")
             board_main["board_ip"]       = board_obj.get("board_ip")
-            board_main["measurements"]   = ["measurements.json"]
-            board_main["packets"]        = ["packets.json"]
+            board_main["measurements"]   = [meas_file]
+            board_main["packets"]        = packet_files
             f.seek(0)
             json.dump(board_main, f, indent=2)
             f.truncate()
