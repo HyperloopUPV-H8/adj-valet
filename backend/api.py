@@ -29,7 +29,6 @@ async def assemble_json():
     if ADJ_PATH.value is None:
         raise HTTPException(status_code=400, detail="ADJ_PATH is not set.")
     monojson = assemble_monojson(ADJ_PATH.value)
-    print(monojson)
     return monojson
 
 @app.post("/update")
@@ -37,8 +36,28 @@ async def update_json(request: Request):
     updated_fields = await request.json()
     if ADJ_PATH.value is None:
         raise HTTPException(status_code=400, detail="ADJ_PATH is not set.")
+
+    # Validate and normalize updated fields
+    if "boards" in updated_fields:
+        for board in updated_fields["boards"]:
+            for board_name, board_data in board.items():
+                # Accept full definitions for measurements and packets
+                if "measurements" not in board_data or not isinstance(board_data["measurements"], list) or not board_data["measurements"]:
+                    raise HTTPException(status_code=400, detail=f"Board '{board_name}' has empty or invalid 'measurements'.")
+                if "packets" not in board_data or not isinstance(board_data["packets"], list) or not board_data["packets"]:
+                    raise HTTPException(status_code=400, detail=f"Board '{board_name}' has empty or invalid 'packets'.")
+                for packet in board_data["packets"]:
+                    if not isinstance(packet, dict) or "packet_id" not in packet or not isinstance(packet["packet_id"], dict):
+                        raise HTTPException(status_code=400, detail=f"Invalid packet structure in board '{board_name}'.")
+                # Normalize board_ip as string
+                if "board_ip" in board_data and not isinstance(board_data["board_ip"], str):
+                    board_data["board_ip"] = str(board_data["board_ip"])
+
     current_json = assemble_monojson(ADJ_PATH.value)
     new_json = merge_changes(current_json, updated_fields)
+
+    # Log the merged JSON
+    print("Merged JSON:", new_json)
 
     # Persist merged changes back into ADJ folder
     save_general_info(ADJ_PATH.value, new_json["general_info"])

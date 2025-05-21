@@ -41,9 +41,16 @@ def assemble_monojson(adj_path: str) -> Dict[str, Any]:
             transformed_measurements.append(transform_measurement(meas))
         transformed_packets: List[Dict[str, Any]] = []
         for packet in board.get("packets", []):
-            if "id" not in packet:
-                raise ValueError(f"Packet missing 'id' in board '{board_name}'")
-            transformed_packets.append({"packet_id": transform_packet(packet)})
+            # Expect packet to be {"packet_id": {...}}
+            if not isinstance(packet, dict) or "packet_id" not in packet:
+                raise ValueError(f"Packet missing 'packet_id' in board '{board_name}'")
+            pkt = packet["packet_id"]
+            pkt_id = pkt.get("id") or pkt.get("name")
+            if not pkt_id:
+                raise ValueError(f"Packet missing both 'id' and 'name' in board '{board_name}'")
+            if "id" not in pkt and "name" in pkt:
+                pkt["id"] = pkt["name"]
+            transformed_packets.append({"packet_id": transform_packet(pkt)})
         monojson["boards"].append({
             board_name: {
                 "board_id": board.get("board_id"),

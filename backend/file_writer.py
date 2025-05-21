@@ -20,13 +20,23 @@ def save_boards(adj_path: str, boards: List[Dict[str, Any]]) -> None:
         if not os.path.isdir(board_dir):
             raise FileNotFoundError(f"Boards directory not found: {board_dir}")
 
-        # 1) Overwrite measurements.json
-        meas_path = os.path.join(board_dir, "measurements.json")
+        # 1) Read the board's main JSON to determine file paths
+        main_json_path = os.path.join(board_dir, f"{board_name}.json")
+        with open(main_json_path, "r", encoding="utf-8") as f:
+            board_main = json.load(f)
+        
+        # Get paths for measurements and packets
+        meas_file = board_main.get("measurements", [])[0] if board_main.get("measurements") else "measurements.json"
+        pkt_file = board_main.get("packets", [])[0] if board_main.get("packets") else "packets.json"
+        
+        meas_path = os.path.join(board_dir, meas_file)
+        pkt_path = os.path.join(board_dir, pkt_file)
+
+        # 2) Overwrite measurements file
         with open(meas_path, "w", encoding="utf-8") as mf:
             json.dump(board_obj.get("measurements", []), mf, indent=2)
 
-        # 2) Overwrite packets.json (unwrap from {"packet_id": {...}})
-        pkt_path = os.path.join(board_dir, "packets.json")
+        # 3) Overwrite packets file (unwrap from {"packet_id": {...}})
         packets = [
             pkt["packet_id"]
             for pkt in board_obj.get("packets", [])

@@ -28,9 +28,9 @@ def deep_merge(original: Any, updates: Any) -> Any:
                     continue
                 key = list(upd_item.keys())[0]
                 if key in orig_map:
-                    orig_map[key] = deep_merge(orig_map[key], upd_item)
+                    orig_map[key] = deep_merge(orig_map[key], upd_item.get(key, {}))
                 else:
-                    orig_map[key] = upd_item
+                    orig_map[key] = upd_item.get(key, {})
             return [{k: v} for k, v in orig_map.items()]
 
         # b) ID-based list items
@@ -45,12 +45,9 @@ def deep_merge(original: Any, updates: Any) -> Any:
         orig_map: Dict[Any, Any] = {}
         for item in original:
             uid = get_id(item)
-            if uid is None:
+            if uid is None or not isinstance(uid, (str, int, float, tuple)):
                 continue
-            try:
-                orig_map[uid] = item
-            except TypeError:
-                continue
+            orig_map[uid] = item
 
         merged = list(original)
         for upd_item in updates:
@@ -58,10 +55,11 @@ def deep_merge(original: Any, updates: Any) -> Any:
             # skip null or invalid updates
             if upd_item is None or uid is None:
                 continue
-            if uid in orig_map:
-                orig_map[uid] = deep_merge(orig_map[uid], upd_item)
-            else:
-                merged.append(upd_item)
+            if isinstance(uid, (str, int, float, tuple)):
+                if uid in orig_map:
+                    orig_map[uid] = deep_merge(orig_map[uid], upd_item.get("packet_id", {}))
+                else:
+                    merged.append(upd_item)
         return merged
 
     # 3) Primitives: attempt best-effort type preservation
