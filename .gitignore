@@ -2,3 +2,5 @@
 backend/__pycache__
 /backend/.venew_jsonnew_json
 .zed/
+.claude/
+CLAUDE.md
