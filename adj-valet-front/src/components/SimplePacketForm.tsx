@@ -144,10 +144,8 @@ export const SimplePacketForm = ({ boardName, packet, isCreating, onSubmit }: Pr
                         onChange={(e) => handleFieldChange('type', e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     >
-                        <option value="DATA">DATA</option>
-                        <option value="order">Order</option>
-                        <option value="control">Control</option>
-                        <option value="status">Status</option>
+                        <option value="data">Data (sensor readings, measurements)</option>
+                        <option value="order">Order (commands, control instructions)</option>
                     </select>
                 </div>
 
