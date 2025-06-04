@@ -1,6 +1,6 @@
-import { BoardForm } from '../components/BoardForm';
+import { SimpleBoardForm } from '../components/SimpleBoardForm';
 import { GeneralInfoForm } from '../components/GeneralInfoForm';
-import { useADJStore } from '../store/ADJStore';
+import { useADJState, useADJActions } from '../store/ADJStore';
 import { Board, BoardName, BoardInfo } from '../types/Board';
 
 interface Props {
@@ -9,14 +9,24 @@ interface Props {
 }
 
 export const Content = ({ selectedSection, setSelectedSection }: Props) => {
-    const { boards, removeBoard } = useADJStore();
+    const { config } = useADJState();
+    const { removeBoard } = useADJActions();
+
+    if (!config) {
+        return <div>No configuration loaded</div>;
+    }
 
     if (selectedSection === 'general_info') {
         return <GeneralInfoForm />;
     } else {
-        const selectedBoard = boards.find(
+        const selectedBoard = config.boards.find(
             (board: Board) => Object.keys(board)[0] === selectedSection,
         ) as Board;
+        
+        if (!selectedBoard) {
+            return <div>Board not found</div>;
+        }
+        
         const selectedBoardName = Object.keys(selectedBoard)[0] as BoardName;
         const selectedBoardInfo = selectedBoard[selectedBoardName] as BoardInfo;
 
@@ -36,7 +46,7 @@ export const Content = ({ selectedSection, setSelectedSection }: Props) => {
                         <i className="fa-solid fa-trash"></i>
                     </button>
                 </div>
-                <BoardForm
+                <SimpleBoardForm
                     boardName={selectedBoardName}
                     boardInfo={selectedBoardInfo}
                     setSelectedSection={setSelectedSection}
