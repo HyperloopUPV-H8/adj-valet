@@ -86,7 +86,7 @@ jobs:
     - name: Copy documentation and scripts
       run: |
         cp README.md release/adj-valet/
-        cp adj/README.md release/adj-valet/ADJ-SPEC.md
+        cp RELEASE-GUIDE.md release/adj-valet/
         cp run.sh release/adj-valet/ || echo "run.sh not found, skipping"
 
     - name: Create startup script (Unix)
