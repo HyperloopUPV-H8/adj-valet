@@ -25,10 +25,30 @@ export class ApiError extends Error {
 
 class ApiClient {
   private baseUrl: string | null = null;
-  private readonly DISCOVERY_PORTS = [8001, 8000, 8002, 8003, 8004];
+  private readonly DISCOVERY_PORTS = Array.from({ length: 50 }, (_, i) => 8000 + i); // Check ports 8000-8049
   private readonly REQUEST_TIMEOUT = 5000;
 
   private async discoverBackend(): Promise<string> {
+    // First, try to read the port file written by the backend
+    try {
+      const portFileResponse = await fetch('/.adj-valet-port');
+      if (portFileResponse.ok) {
+        const portInfo = await portFileResponse.json();
+        if (portInfo.backend_url) {
+          console.log(`Backend URL from port file: ${portInfo.backend_url}`);
+          // Verify this URL is actually working
+          const healthResponse = await fetch(`${portInfo.backend_url}/health`);
+          if (healthResponse.ok) {
+            console.log(`Backend verified at: ${portInfo.backend_url}`);
+            return portInfo.backend_url;
+          }
+        }
+      }
+    } catch (e) {
+      console.log('Could not read port file, falling back to discovery');
+    }
+
+    // Fallback to port discovery
     for (const port of this.DISCOVERY_PORTS) {
       try {
         const url = `http://localhost:${port}`;
@@ -69,6 +89,8 @@ class ApiClient {
     const baseUrl = await this.getBaseUrl();
     const url = `${baseUrl}${endpoint}`;
     
+    console.log(`Making ${options.method || 'GET'} request to: ${url}`);
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
 
@@ -84,8 +106,11 @@ class ApiClient {
 
       clearTimeout(timeoutId);
 
+      console.log(`Response from ${url}: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
+        console.error(`Error response from ${url}:`, errorText);
         throw new ApiError(
           `HTTP ${response.status}: ${errorText}`,
           response.status,
@@ -102,12 +127,30 @@ class ApiClient {
     } catch (error) {
       clearTimeout(timeoutId);
       
+      console.error(`Request failed to ${url}:`, error);
+      
       if (error instanceof ApiError) {
         throw error;
       }
       
       if (error instanceof DOMException && error.name === 'AbortError') {
         throw new ApiError('Request timeout', 408);
+      }
+      
+      // If it's a network error and we had a cached base URL, clear it and retry once
+      const headers = options.headers as Record<string, string> || {};
+      if (!headers['x-retry'] && this.baseUrl && error instanceof Error && (
+        error.message.includes('Failed to fetch') || 
+        error.message.includes('Network error') ||
+        error.message.includes('CORS') ||
+        error.message.includes('NetworkError')
+      )) {
+        console.log('Network error detected, clearing cached URL and retrying...');
+        this.baseUrl = null;
+        return this.makeRequest<T>(endpoint, { 
+          ...options, 
+          headers: { ...options.headers, 'x-retry': 'true' } 
+        });
       }
       
       throw new ApiError(
@@ -133,10 +176,24 @@ class ApiClient {
   }
 
   async updateConfig(config: ADJ): Promise<ADJ> {
-    return this.makeRequest<ADJ>('/update', {
-      method: 'POST',
-      body: JSON.stringify(config),
-    });
+    try {
+      return await this.makeRequest<ADJ>('/update', {
+        method: 'POST',
+        body: JSON.stringify(config),
+      });
+    } catch (error) {
+      // For save operations, if we get a network error, force rediscovery and retry once more
+      if (error instanceof ApiError && error.status === 0 && this.baseUrl) {
+        console.warn('Save failed with network error, forcing backend rediscovery...');
+        this.baseUrl = null;
+        return this.makeRequest<ADJ>('/update', {
+          method: 'POST',
+          body: JSON.stringify(config),
+          headers: { 'x-force-retry': 'true' }
+        });
+      }
+      throw error;
+    }
   }
 
   async healthCheck(): Promise<boolean> {
@@ -150,6 +207,7 @@ class ApiClient {
 
   resetConnection(): void {
     this.baseUrl = null;
+    console.log('API connection reset - will rediscover backend on next request');
   }
 }
 

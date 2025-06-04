@@ -74,6 +74,7 @@ export const useADJStore = create<ADJStore>()(
 
         setADJPath: (path: string) => set((state) => {
           state.adjPath = path;
+          state.error = null; // Clear any previous errors when setting new path
           localStorage.setItem('adj_path', path);
         }),
 
@@ -96,23 +97,33 @@ export const useADJStore = create<ADJStore>()(
           
           console.log('loadConfig called with path:', path, 'adjPath:', adjPath);
           
-          if (!adjPath) {
-            setError('No ADJ path provided');
-            return;
-          }
-
           setLoading(true);
           setError(null);
+          
+          // Clear any existing config when loading new one
+          if (path) {
+            set((state) => {
+              state.config = null;
+            });
+            // Force API client to rediscover backend
+            apiClient.resetConnection();
+          }
 
           try {
-            console.log('Setting ADJ path:', adjPath);
-            await apiClient.setADJPath(adjPath);
+            // If we have a path, always set it first to ensure backend loads fresh data
+            if (adjPath) {
+              console.log('Setting ADJ path:', adjPath);
+              await apiClient.setADJPath(adjPath);
+              setADJPath(adjPath);
+            } else {
+              setError('No ADJ path provided');
+              return;
+            }
             
             console.log('Getting config from backend...');
             const config = await apiClient.getConfig();
             
             console.log('Config loaded successfully:', config);
-            setADJPath(adjPath);
             setConfig(config);
           } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to load configuration';

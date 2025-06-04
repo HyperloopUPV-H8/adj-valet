@@ -5,9 +5,9 @@
   
   **A configuration management tool for Hyperloop control systems**
   
-  [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+  [![Rust](https://img.shields.io/badge/Rust-1.70+-orange.svg)](https://www.rust-lang.org/)
   [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
+  [![Axum](https://img.shields.io/badge/Axum-Latest-blue.svg)](https://github.com/tokio-rs/axum)
   [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://reactjs.org/)
 </div>
 
@@ -58,7 +58,7 @@ adj-frontend  # Frontend application only
 
 ### Prerequisites
 
-- **Python** 3.8 or higher
+- **Rust** 1.70 or higher
 - **Node.js** 18 or higher
 - **npm** 8 or higher
 
@@ -70,10 +70,10 @@ adj-frontend  # Frontend application only
    cd adj-valet
    ```
 
-2. **Install backend dependencies**
+2. **Build backend (Rust)**
    ```bash
    cd backend
-   pip install -r requirements.txt
+   cargo build --release
    cd ..
    ```
 
@@ -88,7 +88,7 @@ adj-frontend  # Frontend application only
    ```bash
    # Terminal 1 - Backend
    cd backend
-   uvicorn api:app --reload --port 8000 --host 0.0.0.0
+   cargo run -- --port 8000
 
    # Terminal 2 - Frontend
    cd adj-valet-front
@@ -122,12 +122,12 @@ lint-python          # Lint Python code with Pylint
 
 ```
 adj-valet/
-├── backend/              # FastAPI backend service
-│   ├── api.py           # API endpoints
-│   ├── data_ingestion.py # File system data loading
-│   ├── json_assembler.py # JSON structure assembly
-│   ├── diff_merge.py    # Change management
-│   └── file_writer.py   # File persistence
+├── backend/              # Rust backend service (Axum)
+│   ├── src/
+│   │   ├── main.rs      # Main application and API endpoints
+│   │   ├── config.rs    # Configuration management
+│   │   └── error.rs     # Error handling
+│   └── Cargo.toml       # Rust dependencies
 ├── adj-valet-front/     # React frontend application
 │   ├── src/
 │   │   ├── components/  # React components

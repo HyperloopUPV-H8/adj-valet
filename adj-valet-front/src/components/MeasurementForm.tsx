@@ -1,7 +1,7 @@
 import { Board, BoardName } from '../types/Board';
 import { Measurement } from '../types/Measurement';
 import { Input } from './Input';
-import { useADJActions } from '../store/ADJStore';
+import { useADJActions, useADJState } from '../store/ADJStore';
 import { useState } from 'react';
 
 interface Props {
@@ -17,9 +17,16 @@ export const MeasurementForm = ({
     isCreating,
     onSubmit,
 }: Props) => {
-    // const { config } = useADJState();
+    const { config } = useADJState();
     const { updateMeasurement, removeMeasurement, addMeasurement } = useADJActions();
-    const [formData, setFormData] = useState<Measurement>(measurement);
+    const [formData, setFormData] = useState<Measurement>({
+        ...measurement,
+        enumValues: measurement.enumValues || [],
+        safeRange: measurement.safeRange || [0, 0],
+        warningRange: measurement.warningRange || [0, 0],
+        displayUnits: measurement.displayUnits || '',
+        podUnits: measurement.podUnits || ''
+    });
     const [originalId] = useState(measurement.id);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -39,16 +46,24 @@ export const MeasurementForm = ({
             return;
         }
 
-        const boardIndex = boards.findIndex(
+        if (!config) {
+            alert('Configuration not loaded');
+            return;
+        }
+
+        const boardIndex = config.boards.findIndex(
             (board: Board) => Object.keys(board)[0] === boardName
         );
-        const existingMeasurement = boards[boardIndex][boardName].measurements.find(
-            (m: Measurement) => m.id === formData.id && m.id !== originalId
-        );
+        
+        if (boardIndex !== -1) {
+            const existingMeasurement = config.boards[boardIndex][boardName].measurements.find(
+                (m: Measurement) => m.id === formData.id && m.id !== originalId
+            );
 
-        if (existingMeasurement) {
-            alert('A measurement with this ID already exists. Please choose a different ID.');
-            return;
+            if (existingMeasurement) {
+                alert('A measurement with this ID already exists. Please choose a different ID.');
+                return;
+            }
         }
 
         if (isCreating) {
@@ -103,7 +118,8 @@ export const MeasurementForm = ({
     ) => {
         setFormData((prev) => {
             if (section === 'safeRange' || section === 'warningRange') {
-                const newRange = [...prev[section]];
+                const currentRange = prev[section] || [0, 0];
+                const newRange = [...currentRange];
                 const index = parseInt(field);
                 newRange[index] = parseFloat(value as string) || 0;
                 return {
@@ -170,7 +186,7 @@ export const MeasurementForm = ({
                     <div className="mb-2 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                             <label className="text-sm font-medium text-gray-700">
-                                Enum Values ({formData.enumValues.length})
+                                Enum Values ({formData.enumValues?.length || 0})
                             </label>
                         </div>
 
@@ -179,14 +195,14 @@ export const MeasurementForm = ({
                                 Show/Hide Enum Values
                             </summary>
                             <div className="mt-3 space-y-2">
-                                {formData.enumValues.map((value, index) => (
+                                {(formData.enumValues || []).map((value, index) => (
                                     <div key={index} className="flex gap-2">
                                         <input
                                             type="text"
                                             value={value}
                                             onChange={(e) => {
                                                 const newValues = [
-                                                    ...formData.enumValues,
+                                                    ...(formData.enumValues || []),
                                                 ];
                                                 newValues[index] =
                                                     e.target.value;
@@ -202,7 +218,7 @@ export const MeasurementForm = ({
                                             type="button"
                                             onClick={() => {
                                                 const newValues =
-                                                    formData.enumValues.filter(
+                                                    (formData.enumValues || []).filter(
                                                         (_, i) => i !== index,
                                                     );
                                                 updateFormField(
@@ -222,7 +238,7 @@ export const MeasurementForm = ({
                                 type="button"
                                 onClick={() => {
                                     const newValues = [
-                                        ...formData.enumValues,
+                                        ...(formData.enumValues || []),
                                         '',
                                     ];
                                     updateFormField(
@@ -239,9 +255,9 @@ export const MeasurementForm = ({
                     </div>
                     <div className="flex w-full gap-4">
                         <Input
-                            object={{safeMin: formData.safeRange[0]}}
+                            object={{safeMin: formData.safeRange?.[0] || 0}}
                             field={'safeMin'}
-                            setObject={(field, value) =>
+                            setObject={(_, value) =>
                                 updateFormField('safeRange', '0', value)
                             }
                             label="Safe Range Min"
@@ -249,9 +265,9 @@ export const MeasurementForm = ({
                         />
 
                         <Input
-                            object={{safeMax: formData.safeRange[1]}}
+                            object={{safeMax: formData.safeRange?.[1] || 0}}
                             field={'safeMax'}
-                            setObject={(field, value) =>
+                            setObject={(_, value) =>
                                 updateFormField('safeRange', '1', value)
                             }
                             label="Safe Range Max"
@@ -261,9 +277,9 @@ export const MeasurementForm = ({
 
                     <div className="flex w-full gap-4">
                         <Input
-                            object={{warningMin: formData.warningRange[0]}}
+                            object={{warningMin: formData.warningRange?.[0] || 0}}
                             field={'warningMin'}
-                            setObject={(field, value) =>
+                            setObject={(_, value) =>
                                 updateFormField('warningRange', '0', value)
                             }
                             label="Warning Range Min"
@@ -271,9 +287,9 @@ export const MeasurementForm = ({
                         />
 
                         <Input
-                            object={{warningMax: formData.warningRange[1]}}
+                            object={{warningMax: formData.warningRange?.[1] || 0}}
                             field={'warningMax'}
-                            setObject={(field, value) =>
+                            setObject={(_, value) =>
                                 updateFormField('warningRange', '1', value)
                             }
                             label="Warning Range Max"

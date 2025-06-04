@@ -25,15 +25,15 @@ function App() {
   };
 
   useEffect(() => {
-    if (adjPath && !config && !isLoading && !error) {
-      console.log('Attempting to load stored ADJ path:', adjPath);
-      loadConfig(adjPath).catch((error) => {
-        console.error('Failed to load stored ADJ path:', error);
-        console.log('Will show setup form due to failed path load');
-        // The error will be set by loadConfig, causing shouldShowSetup to become true
+    // Try to load config on mount, even if we don't have a stored path
+    if (!config && !isLoading && !error) {
+      console.log('Attempting to load config on mount');
+      loadConfig().catch((error) => {
+        console.error('Failed to load config:', error);
+        // The error will be set by loadConfig
       });
     }
-  }, [adjPath, config, isLoading, loadConfig, error]);
+  }, []); // Only run on mount
 
   // Show the setup form if no adjPath OR if there's an error loading config
   const shouldShowSetup = !adjPath || (error && !config);
@@ -83,17 +83,32 @@ function App() {
             disabled={isLoading}
           />
           
-          <button
-            className={`px-6 py-2 rounded-lg font-medium text-white transition-colors ${
-              isLoading || !pathInput.trim()
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-            }`}
-            onClick={handleLoadConfig}
-            disabled={isLoading || !pathInput.trim()}
-          >
-            {isLoading ? 'Loading...' : 'Load Configuration'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              className={`flex-1 px-6 py-2 rounded-lg font-medium text-white transition-colors ${
+                isLoading || !pathInput.trim()
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+              }`}
+              onClick={handleLoadConfig}
+              disabled={isLoading || !pathInput.trim()}
+            >
+              {isLoading ? 'Loading...' : 'Load Configuration'}
+            </button>
+            
+            <button
+              className="px-4 py-2 rounded-lg font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors"
+              onClick={() => {
+                resetState();
+                setPathInput('');
+                console.log('Cache cleared');
+              }}
+              disabled={isLoading}
+              title="Clear all cached data and start fresh"
+            >
+              Clear Cache
+            </button>
+          </div>
         </div>
 
         {isLoading && (
