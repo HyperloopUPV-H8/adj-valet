@@ -25,15 +25,17 @@ function App() {
   };
 
   useEffect(() => {
-    if (adjPath && !config && !isLoading) {
+    if (adjPath && !config && !isLoading && !error) {
+      console.log('Attempting to load stored ADJ path:', adjPath);
       loadConfig(adjPath).catch((error) => {
         console.error('Failed to load stored ADJ path:', error);
-        // Don't clear the path immediately - let user decide
+        console.log('Will show setup form due to failed path load');
+        // The error will be set by loadConfig, causing shouldShowSetup to become true
       });
     }
-  }, [adjPath, config, isLoading, loadConfig]);
+  }, [adjPath, config, isLoading, loadConfig, error]);
 
-  // Show the setup form if no adjPath OR if there's an error and no config loaded
+  // Show the setup form if no adjPath OR if there's an error loading config
   const shouldShowSetup = !adjPath || (error && !config);
 
   if (shouldShowSetup) {
@@ -41,18 +43,32 @@ function App() {
       <div className="flex h-full w-full flex-col items-center justify-center gap-4">
         <h1 className="text-2xl font-bold text-gray-800">ADJ Valet</h1>
         <p className="text-gray-600">
-          {adjPath ? 'Failed to load configuration. Enter a new path:' : 'Enter the path to your ADJ directory to get started'}
+          {adjPath && error ? 'The cached ADJ path is no longer valid. Please enter a new path:' : 
+           adjPath ? 'Failed to load configuration. Enter a new path:' : 
+           'Enter the path to your ADJ directory to get started'}
         </p>
         
         {adjPath && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-lg">
-            <p className="text-sm">Previous path: <code className="bg-yellow-100 px-1 rounded">{adjPath}</code></p>
-            <button 
-              onClick={resetState}
-              className="text-xs text-yellow-600 hover:text-yellow-800 underline"
-            >
-              Clear and start fresh
-            </button>
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-lg max-w-md w-full">
+            <p className="text-sm">
+              {error ? 'Invalid cached path:' : 'Previous path:'} 
+              <code className="bg-yellow-100 px-1 rounded ml-1">{adjPath}</code>
+            </p>
+            <div className="flex gap-2 mt-2">
+              <button 
+                onClick={() => setPathInput(adjPath)}
+                className="text-xs text-yellow-600 hover:text-yellow-800 underline"
+              >
+                Use this path again
+              </button>
+              <span className="text-xs text-yellow-400">•</span>
+              <button 
+                onClick={resetState}
+                className="text-xs text-yellow-600 hover:text-yellow-800 underline"
+              >
+                Clear and start fresh
+              </button>
+            </div>
           </div>
         )}
         
