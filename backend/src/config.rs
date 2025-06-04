@@ -1,0 +1,384 @@
+use crate::error::{AppError, Result};
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+};
+use tracing::{info, warn};
+
+/// Top-level ADJ configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ADJConfig {
+    pub general_info: GeneralInfo,
+    pub boards: Vec<BoardEntry>,
+    pub board_list: HashMap<String, String>, // board_name -> path mapping
+}
+
+/// A board entry - keeps the original nested structure for frontend compatibility
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BoardEntry {
+    #[serde(flatten)]
+    pub board: HashMap<String, Board>, // Single key-value pair: board_name -> Board
+}
+
+impl BoardEntry {
+    pub fn new(name: String, board: Board) -> Self {
+        let mut map = HashMap::new();
+        map.insert(name, board);
+        Self { board: map }
+    }
+
+    pub fn name(&self) -> &String {
+        self.board.keys().next().unwrap()
+    }
+
+    pub fn board(&self) -> &Board {
+        self.board.values().next().unwrap()
+    }
+
+    pub fn board_mut(&mut self) -> &mut Board {
+        self.board.values_mut().next().unwrap()
+    }
+}
+
+/// General configuration information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneralInfo {
+    pub ports: HashMap<String, u16>,
+    pub addresses: HashMap<String, String>,
+    pub units: HashMap<String, String>,
+    pub message_ids: HashMap<String, u32>,
+}
+
+/// Board configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Board {
+    pub board_id: u32,
+    pub board_ip: String,
+    pub measurements: Vec<Measurement>,
+    pub packets: Vec<Packet>,
+}
+
+/// Measurement definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Measurement {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub measurement_type: String,
+    #[serde(rename = "podUnits")]
+    pub pod_units: String,
+    #[serde(rename = "displayUnits")]
+    pub display_units: String,
+    #[serde(rename = "enumValues")]
+    pub enum_values: Vec<String>,
+    #[serde(rename = "safeRange")]
+    pub safe_range: [f64; 2],
+    #[serde(rename = "warningRange")]
+    pub warning_range: [f64; 2],
+}
+
+/// Packet definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Packet {
+    #[serde(rename = "type")]
+    pub packet_type: String,
+    pub name: String,
+    pub variables: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<u32>, // Some packets have IDs, some don't
+}
+
+impl ADJConfig {
+    /// Load configuration from an ADJ directory
+    pub fn load_from_directory(adj_path: &Path) -> Result<Self> {
+        info!("Loading ADJ configuration from: {}", adj_path.display());
+
+        // Load general_info.json
+        let general_info = Self::load_general_info(adj_path)?;
+
+        // Load all boards from the boards/ directory
+        let boards = Self::load_boards(adj_path)?;
+
+        // Create board_list mapping (board_name -> path)
+        let mut board_list = HashMap::new();
+        for board_entry in &boards {
+            let board_name = board_entry.name();
+            let path = format!("boards/{}/{}.json", board_name, board_name);
+            board_list.insert(board_name.clone(), path);
+        }
+
+        Ok(ADJConfig {
+            general_info,
+            boards,
+            board_list,
+        })
+    }
+
+    /// Save configuration to an ADJ directory
+    pub fn save_to_directory(&self, adj_path: &Path) -> Result<()> {
+        info!("Saving ADJ configuration to: {}", adj_path.display());
+
+        // Save general_info.json
+        self.save_general_info(adj_path)?;
+
+        // Save boards.json
+        self.save_board_list(adj_path)?;
+
+        // Save all boards to the boards/ directory
+        self.save_boards(adj_path)?;
+
+        Ok(())
+    }
+
+    /// Rename a board atomically
+    pub fn rename_board(&mut self, old_name: &str, new_name: &str, adj_path: &Path) -> Result<()> {
+        // Check if new name already exists
+        if self.boards.iter().any(|entry| entry.name() == new_name) {
+            return Err(AppError::Conflict(format!(
+                "Board with name '{}' already exists",
+                new_name
+            )));
+        }
+
+        // Find the board to rename
+        let board_index = self
+            .boards
+            .iter()
+            .position(|entry| entry.name() == old_name)
+            .ok_or_else(|| AppError::NotFound(format!("Board '{}' not found", old_name)))?;
+
+        let board_entry = &mut self.boards[board_index];
+        let board = board_entry.board().clone();
+
+        // Update board_list mapping (remove old entry, add new one)
+        self.board_list.remove(old_name);
+        let new_path = format!("boards/{}/{}.json", new_name, new_name);
+        self.board_list.insert(new_name.to_string(), new_path);
+
+        // Rename directory on filesystem if it exists
+        let boards_dir = adj_path.join("boards");
+        let old_dir = boards_dir.join(old_name);
+        let new_dir = boards_dir.join(new_name);
+
+        if old_dir.exists() {
+            info!("Renaming board directory: {} -> {}", old_name, new_name);
+            fs::rename(&old_dir, &new_dir)?;
+
+            // Rename the main board JSON file
+            let old_json = new_dir.join(format!("{}.json", old_name));
+            let new_json = new_dir.join(format!("{}.json", new_name));
+            if old_json.exists() {
+                fs::rename(&old_json, &new_json)?;
+            }
+
+            // Rename measurements file if it exists
+            let old_measurements = new_dir.join(format!("{}_measurements.json", old_name));
+            let new_measurements = new_dir.join(format!("{}_measurements.json", new_name));
+            if old_measurements.exists() {
+                fs::rename(&old_measurements, &new_measurements)?;
+            }
+        }
+
+        // Update the board entry in memory
+        self.boards[board_index] = BoardEntry::new(new_name.to_string(), board);
+
+        Ok(())
+    }
+
+    fn load_general_info(adj_path: &Path) -> Result<GeneralInfo> {
+        let path = adj_path.join("general_info.json");
+        let content = fs::read_to_string(path)?;
+        Ok(serde_json::from_str(&content)?)
+    }
+
+
+    fn load_boards(adj_path: &Path) -> Result<Vec<BoardEntry>> {
+        let boards_dir = adj_path.join("boards");
+        if !boards_dir.exists() {
+            warn!("boards directory not found, creating empty boards list");
+            return Ok(Vec::new());
+        }
+
+        let mut boards = Vec::new();
+
+        for entry in fs::read_dir(boards_dir)? {
+            let entry = entry?;
+            let board_name = entry.file_name().to_string_lossy().to_string();
+            let board_dir = entry.path();
+
+            if !board_dir.is_dir() {
+                continue;
+            }
+
+            // Try to load the board
+            match Self::load_single_board(&board_name, &board_dir) {
+                Ok(board) => {
+                    boards.push(BoardEntry::new(board_name, board));
+                }
+                Err(e) => {
+                    warn!("Failed to load board '{}': {}", board_name, e);
+                    continue;
+                }
+            }
+        }
+
+        Ok(boards)
+    }
+
+    fn load_single_board(board_name: &str, board_dir: &Path) -> Result<Board> {
+        // Load main board JSON
+        let main_json_path = board_dir.join(format!("{}.json", board_name));
+        let board_info: serde_json::Value = if main_json_path.exists() {
+            let content = fs::read_to_string(main_json_path)?;
+            serde_json::from_str(&content)?
+        } else {
+            // Create default board info if main JSON doesn't exist
+            warn!("Main board JSON not found for '{}', using defaults", board_name);
+            serde_json::json!({
+                "board_id": 0,
+                "board_ip": "0.0.0.0",
+                "measurements": [],
+                "packets": []
+            })
+        };
+
+        // Extract basic board info
+        let board_id = board_info["board_id"].as_u64().unwrap_or(0) as u32;
+        let board_ip = board_info["board_ip"].as_str().unwrap_or("0.0.0.0").to_string();
+
+        // Load measurements
+        let measurements = Self::load_measurements(board_name, board_dir)?;
+
+        // Load packets
+        let packets = Self::load_packets(board_dir)?;
+
+        Ok(Board {
+            board_id,
+            board_ip,
+            measurements,
+            packets,
+        })
+    }
+
+    fn load_measurements(board_name: &str, board_dir: &Path) -> Result<Vec<Measurement>> {
+        let measurements_path = board_dir.join(format!("{}_measurements.json", board_name));
+        if measurements_path.exists() {
+            let content = fs::read_to_string(measurements_path)?;
+            Ok(serde_json::from_str(&content)?)
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
+    fn load_packets(board_dir: &Path) -> Result<Vec<Packet>> {
+        let mut all_packets = Vec::new();
+
+        // Load from various packet files
+        let packet_files = ["packets.json", "orders.json", "control_packets.json"];
+
+        for file_name in &packet_files {
+            let packet_path = board_dir.join(file_name);
+            if packet_path.exists() {
+                let content = fs::read_to_string(packet_path)?;
+                let packets: Vec<Packet> = serde_json::from_str(&content)?;
+                all_packets.extend(packets);
+            }
+        }
+
+        Ok(all_packets)
+    }
+
+    fn save_general_info(&self, adj_path: &Path) -> Result<()> {
+        let path = adj_path.join("general_info.json");
+        let content = serde_json::to_string_pretty(&self.general_info)?;
+        fs::write(path, content)?;
+        Ok(())
+    }
+
+    fn save_board_list(&self, adj_path: &Path) -> Result<()> {
+        let path = adj_path.join("boards.json");
+        let content = serde_json::to_string_pretty(&self.board_list)?;
+        fs::write(path, content)?;
+        Ok(())
+    }
+
+    fn save_boards(&self, adj_path: &Path) -> Result<()> {
+        let boards_dir = adj_path.join("boards");
+        fs::create_dir_all(&boards_dir)?;
+
+        for board_entry in &self.boards {
+            let board_name = board_entry.name();
+            let board = board_entry.board();
+            let board_dir = boards_dir.join(board_name);
+            fs::create_dir_all(&board_dir)?;
+
+            // Save main board JSON
+            self.save_board_main(board_name, board, &board_dir)?;
+
+            // Save measurements
+            self.save_board_measurements(board_name, &board.measurements, &board_dir)?;
+
+            // Save packets (group by type)
+            self.save_board_packets(&board.packets, &board_dir)?;
+        }
+
+        Ok(())
+    }
+
+    fn save_board_main(&self, board_name: &str, board: &Board, board_dir: &Path) -> Result<()> {
+        let main_json = serde_json::json!({
+            "board_id": board.board_id,
+            "board_ip": board.board_ip,
+            "measurements": [format!("{}_measurements.json", board_name)],
+            "packets": ["packets.json", "orders.json"]
+        });
+
+        let path = board_dir.join(format!("{}.json", board_name));
+        let content = serde_json::to_string_pretty(&main_json)?;
+        fs::write(path, content)?;
+        Ok(())
+    }
+
+    fn save_board_measurements(
+        &self,
+        board_name: &str,
+        measurements: &[Measurement],
+        board_dir: &Path,
+    ) -> Result<()> {
+        let path = board_dir.join(format!("{}_measurements.json", board_name));
+        let content = serde_json::to_string_pretty(measurements)?;
+        fs::write(path, content)?;
+        Ok(())
+    }
+
+    fn save_board_packets(&self, packets: &[Packet], board_dir: &Path) -> Result<()> {
+        // Group packets by type
+        let mut data_packets = Vec::new();
+        let mut order_packets = Vec::new();
+
+        for packet in packets {
+            match packet.packet_type.as_str() {
+                "order" => order_packets.push(packet),
+                _ => data_packets.push(packet),
+            }
+        }
+
+        // Save data packets
+        if !data_packets.is_empty() {
+            let path = board_dir.join("packets.json");
+            let content = serde_json::to_string_pretty(&data_packets)?;
+            fs::write(path, content)?;
+        }
+
+        // Save order packets
+        if !order_packets.is_empty() {
+            let path = board_dir.join("orders.json");
+            let content = serde_json::to_string_pretty(&order_packets)?;
+            fs::write(path, content)?;
+        }
+
+        Ok(())
+    }
+}
