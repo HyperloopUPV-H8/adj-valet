@@ -4,3 +4,5 @@ backend/__pycache__
 .zed/
 .claude/
 CLAUDE.md
+adj/
+.env
