@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fs,
-    path::{Path, PathBuf},
+    path::Path,
 };
 use tracing::{info, warn};
 
@@ -211,7 +211,7 @@ impl ADJConfig {
         }
 
         info!("Reading boards.json from: {}", boards_json_path.display());
-        let boards_content = fs::read_to_string(boards_json_path)?;
+        let boards_content = fs::read_to_string(&boards_json_path)?;
         let board_list: HashMap<String, String> = serde_json::from_str(&boards_content)?;
         
         info!("Found {} boards in boards.json: {:?}", board_list.len(), board_list.keys().collect::<Vec<_>>());
@@ -283,7 +283,7 @@ impl ADJConfig {
         Ok(boards)
     }
 
-    fn load_single_board_from_path(board_name: &str, board_file_path: &Path, board_dir: &Path) -> Result<Board> {
+    fn load_single_board_from_path(_board_name: &str, board_file_path: &Path, board_dir: &Path) -> Result<Board> {
         // Load main board JSON from the specific file path
         let content = fs::read_to_string(board_file_path)?;
         let board_info: serde_json::Value = serde_json::from_str(&content)?;

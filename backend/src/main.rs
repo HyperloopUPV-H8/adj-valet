@@ -1,25 +1,23 @@
 use axum::{
     extract::{Path, State},
-    http::StatusCode,
     response::Json,
     routing::{get, post, put},
     Router,
 };
 use clap::Parser;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{
-    collections::HashMap,
     net::SocketAddr,
     path::PathBuf,
     sync::{Arc, RwLock},
 };
 use tower_http::cors::CorsLayer;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 mod config;
 mod error;
 
-use config::{ADJConfig, Board, GeneralInfo, Measurement, Packet};
+use config::ADJConfig;
 use error::{AppError, Result};
 
 /// ADJ Valet Backend - Rust rewrite for better reliability
@@ -127,6 +125,15 @@ async fn update_config(
         })?.clone()
     };
 
+    // Basic validation to prevent data corruption
+    if new_config.general_info.ports.is_empty() && new_config.boards.is_empty() {
+        warn!("Rejecting config update with empty ports and boards - likely incomplete data");
+        return Err(AppError::BadRequest("Invalid configuration: empty ports and boards".to_string()));
+    }
+
+    info!("Updating configuration with {} boards and {} ports", 
+          new_config.boards.len(), new_config.general_info.ports.len());
+
     // Save to filesystem
     new_config.save_to_directory(&adj_path)?;
 
@@ -215,6 +222,20 @@ async fn write_port_info(port: u16) -> anyhow::Result<()> {
     // Write to a well-known location
     fs::write(".adj-valet-port", serde_json::to_string_pretty(&port_info)?)?;
     info!("Port information written to .adj-valet-port");
+    
+    // Also write to frontend public directory if it exists
+    if let Ok(frontend_path) = std::env::current_dir() {
+        let frontend_public = frontend_path.join("../adj-valet-front/public/.adj-valet-port");
+        if let Some(parent) = frontend_public.parent() {
+            if parent.exists() {
+                if let Err(e) = fs::write(&frontend_public, serde_json::to_string_pretty(&port_info)?) {
+                    info!("Could not write to frontend public directory: {}", e);
+                } else {
+                    info!("Port information written to frontend public directory");
+                }
+            }
+        }
+    }
     
     Ok(())
 }
