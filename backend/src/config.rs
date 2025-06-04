@@ -67,16 +67,16 @@ pub struct Measurement {
     pub name: String,
     #[serde(rename = "type")]
     pub measurement_type: String,
-    #[serde(rename = "podUnits")]
-    pub pod_units: String,
-    #[serde(rename = "displayUnits")]
-    pub display_units: String,
-    #[serde(rename = "enumValues")]
-    pub enum_values: Vec<String>,
-    #[serde(rename = "safeRange")]
-    pub safe_range: [f64; 2],
-    #[serde(rename = "warningRange")]
-    pub warning_range: [f64; 2],
+    #[serde(rename = "podUnits", skip_serializing_if = "Option::is_none")]
+    pub pod_units: Option<String>,
+    #[serde(rename = "displayUnits", skip_serializing_if = "Option::is_none")]
+    pub display_units: Option<String>,
+    #[serde(rename = "enumValues", skip_serializing_if = "Option::is_none")]
+    pub enum_values: Option<Vec<String>>,
+    #[serde(rename = "safeRange", skip_serializing_if = "Option::is_none")]
+    pub safe_range: Option<[f64; 2]>,
+    #[serde(rename = "warningRange", skip_serializing_if = "Option::is_none")]
+    pub warning_range: Option<[f64; 2]>,
 }
 
 /// Packet definition
@@ -85,6 +85,7 @@ pub struct Packet {
     #[serde(rename = "type")]
     pub packet_type: String,
     pub name: String,
+    #[serde(default)]
     pub variables: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<u32>, // Some packets have IDs, some don't
