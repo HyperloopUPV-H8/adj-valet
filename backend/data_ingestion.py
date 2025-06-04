@@ -29,7 +29,9 @@ def read_board_data(adj_path: str) -> Dict[str, Dict[str, Any]]:
 
         board_main_file = os.path.join(board_folder, f"{board_name}.json")
         if not os.path.isfile(board_main_file):
-            raise FileNotFoundError(f"Board main file not found: {board_main_file}")
+            # Skip boards with missing main files (might be in the middle of a rename)
+            print(f"Warning: Board main file not found: {board_main_file}, skipping board")
+            continue
         with open(board_main_file, 'r') as f:
             board_main = json.load(f)
 

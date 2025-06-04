@@ -1,3 +1,5 @@
+import os
+from typing import Dict, List, Any
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,6 +33,40 @@ async def assemble_json():
     monojson = assemble_monojson(ADJ_PATH.value)
     return monojson
 
+def detect_board_renames(old_boards: List[Dict[str, Any]], new_boards: List[Dict[str, Any]]) -> Dict[str, str]:
+    """Detect board renames by matching board_id between old and new lists"""
+    renames = {}
+
+    # Create mappings of board_id to board_name
+    old_mapping = {}
+    for board in old_boards:
+        board_name = list(board.keys())[0]
+        board_data = board[board_name]
+        # Skip boards without board_id
+        if "board_id" not in board_data:
+            continue
+        board_id = board_data["board_id"]
+        old_mapping[board_id] = board_name
+
+    new_mapping = {}
+    for board in new_boards:
+        board_name = list(board.keys())[0]
+        board_data = board[board_name]
+        # Skip boards without board_id
+        if "board_id" not in board_data:
+            continue
+        board_id = board_data["board_id"]
+        new_mapping[board_id] = board_name
+
+    # Find renames by matching board_ids with different names
+    for board_id, old_name in old_mapping.items():
+        if board_id in new_mapping:
+            new_name = new_mapping[board_id]
+            if old_name != new_name:
+                renames[old_name] = new_name
+
+    return renames
+
 @app.post("/update")
 async def update_json(request: Request):
     updated_fields = await request.json()
@@ -53,11 +89,51 @@ async def update_json(request: Request):
                 if "board_ip" in board_data and not isinstance(board_data["board_ip"], str):
                     board_data["board_ip"] = str(board_data["board_ip"])
 
-    current_json = assemble_monojson(ADJ_PATH.value)
+    try:
+        current_json = assemble_monojson(ADJ_PATH.value)
+    except Exception as e:
+        print(f"Warning: Error assembling current monojson: {e}")
+        # Create a minimal current_json if assembly fails
+        current_json = {
+            "general_info": {},
+            "board_list": {},
+            "boards": []
+        }
+    
     new_json = merge_changes(current_json, updated_fields)
 
-    # Log the merged JSON
-    print("Merged JSON:", new_json)
+    # Detect board renames before saving
+    renames = detect_board_renames(current_json.get("boards", []), new_json.get("boards", []))
+
+    # Handle board renames by moving directories
+    if renames:
+        boards_root = os.path.join(ADJ_PATH.value, "boards")
+        for old_name, new_name in renames.items():
+            old_dir = os.path.join(boards_root, old_name)
+            new_dir = os.path.join(boards_root, new_name)
+            if os.path.exists(old_dir) and not os.path.exists(new_dir):
+                os.rename(old_dir, new_dir)
+                # Rename the main board JSON file
+                old_json = os.path.join(new_dir, f"{old_name}.json")
+                new_json_path = os.path.join(new_dir, f"{new_name}.json")
+                if os.path.exists(old_json):
+                    os.rename(old_json, new_json_path)
+                # Rename the measurements file
+                old_meas = os.path.join(new_dir, f"{old_name}_measurements.json")
+                new_meas = os.path.join(new_dir, f"{new_name}_measurements.json")
+                if os.path.exists(old_meas):
+                    os.rename(old_meas, new_meas)
+
+    # Update board_list to match boards
+    updated_board_list = {}
+    for board in new_json["boards"]:
+        board_name = list(board.keys())[0]
+        board_data = board[board_name]
+        # Only add to board_list if board has an ID
+        if "board_id" in board_data:
+            board_id = str(board_data["board_id"])
+            updated_board_list[board_id] = board_name
+    new_json["board_list"] = updated_board_list
 
     # Persist merged changes back into ADJ folder
     save_general_info(ADJ_PATH.value, new_json["general_info"])

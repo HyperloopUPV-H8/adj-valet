@@ -91,14 +91,43 @@ export const Sidebar = ({ selectedSection, onSelectedSection }: Props) => {
 
             <button
                 className="bg-hupv-orange align-center flex w-fit cursor-pointer self-end rounded-full p-3 text-white"
-                onClick={() =>
-                    addBoard('New Board', {
-                        board_id: Math.floor(Math.random() * 1000000),
-                        board_ip: '',
-                        packets: [],
-                        measurements: [],
-                    })
-                }
+                onClick={() => {
+                    // Find the next available board ID
+                    const existingIds = boards.map(board => {
+                        const boardInfo = Object.values(board)[0];
+                        return Number(boardInfo.board_id);
+                    });
+                    const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
+                    
+                    // Generate a unique board name
+                    let boardName = `Board${nextId}`;
+                    let counter = 1;
+                    while (boards.some(board => Object.keys(board)[0] === boardName)) {
+                        boardName = `Board${nextId}_${counter++}`;
+                    }
+                    
+                    addBoard(boardName, {
+                        board_id: nextId,
+                        board_ip: '0.0.0.0',
+                        packets: [{
+                            id: 'default_packet',
+                            name: 'Default Packet',
+                            type: 'DATA',
+                            variables: []
+                        }],
+                        measurements: [{
+                            id: 'default_measurement',
+                            name: 'Default Measurement',
+                            type: 'uint8',
+                            displayUnits: 'units',
+                            podUnits: 'units',
+                            enumValues: [],
+                            above: { safe: 100, warning: 80 },
+                            below: { safe: 0, warning: 20 },
+                            out_of_range: [0, 100]
+                        }],
+                    });
+                }}
             >
                 <i className="fa-solid fa-plus"></i>
             </button>

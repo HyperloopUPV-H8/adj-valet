@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from typing import Any, Dict, List
 
 def save_general_info(adj_path: str, general_info: Dict[str, Any]) -> None:
@@ -14,11 +15,24 @@ def save_board_list(adj_path: str, board_list: Dict[str, str]) -> None:
 
 def save_boards(adj_path: str, boards: List[Dict[str, Any]]) -> None:
     boards_root = os.path.join(adj_path, "boards")
+    
+    # Get list of existing board directories
+    existing_dirs = set()
+    if os.path.exists(boards_root):
+        existing_dirs = set(d for d in os.listdir(boards_root) 
+                           if os.path.isdir(os.path.join(boards_root, d)))
+    
+    # Track which directories are in use
+    current_dirs = set()
+    
     for board_wrapper in boards:
         board_name, board_obj = next(iter(board_wrapper.items()))
         board_dir = os.path.join(boards_root, board_name)
+        current_dirs.add(board_name)
+        
         if not os.path.isdir(board_dir):
-            raise FileNotFoundError(f"Boards directory not found: {board_dir}")
+            # Create the board directory for new boards
+            os.makedirs(board_dir, exist_ok=True)
 
         # Always write measurements to <BOARD_NAME>_measurements.json
         measurements = board_obj.get("measurements", [])
