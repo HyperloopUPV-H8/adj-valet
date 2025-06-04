@@ -98,16 +98,11 @@ impl ADJConfig {
         // Load general_info.json
         let general_info = Self::load_general_info(adj_path)?;
 
-        // Load all boards from the boards/ directory
-        let boards = Self::load_boards(adj_path)?;
+        // Load board_list from boards.json
+        let board_list = Self::load_board_list(adj_path)?;
 
-        // Create board_list mapping (board_name -> path)
-        let mut board_list = HashMap::new();
-        for board_entry in &boards {
-            let board_name = board_entry.name();
-            let path = format!("boards/{}/{}.json", board_name, board_name);
-            board_list.insert(board_name.clone(), path);
-        }
+        // Load all boards using the board_list paths
+        let boards = Self::load_boards(adj_path)?;
 
         Ok(ADJConfig {
             general_info,
@@ -193,8 +188,59 @@ impl ADJConfig {
         Ok(serde_json::from_str(&content)?)
     }
 
+    fn load_board_list(adj_path: &Path) -> Result<HashMap<String, String>> {
+        let boards_json_path = adj_path.join("boards.json");
+        if !boards_json_path.exists() {
+            warn!("boards.json not found, creating empty board list");
+            return Ok(HashMap::new());
+        }
+
+        let content = fs::read_to_string(boards_json_path)?;
+        Ok(serde_json::from_str(&content)?)
+    }
+
 
     fn load_boards(adj_path: &Path) -> Result<Vec<BoardEntry>> {
+        // First, read boards.json to get the list of boards and their paths
+        let boards_json_path = adj_path.join("boards.json");
+        if !boards_json_path.exists() {
+            warn!("boards.json not found, scanning boards directory");
+            return Self::load_boards_from_directory(adj_path);
+        }
+
+        let boards_content = fs::read_to_string(boards_json_path)?;
+        let board_list: HashMap<String, String> = serde_json::from_str(&boards_content)?;
+
+        let mut boards = Vec::new();
+
+        for (board_name, board_path) in board_list {
+            let full_board_path = adj_path.join(&board_path);
+            
+            if !full_board_path.exists() {
+                warn!("Board file not found: {}", full_board_path.display());
+                continue;
+            }
+
+            // Get the directory containing the board file
+            let board_dir = full_board_path.parent().unwrap();
+
+            // Try to load the board
+            match Self::load_single_board_from_path(&board_name, &full_board_path, board_dir) {
+                Ok(board) => {
+                    boards.push(BoardEntry::new(board_name, board));
+                }
+                Err(e) => {
+                    warn!("Failed to load board '{}': {}", board_name, e);
+                    continue;
+                }
+            }
+        }
+
+        Ok(boards)
+    }
+
+    // Fallback method for loading boards by scanning directories
+    fn load_boards_from_directory(adj_path: &Path) -> Result<Vec<BoardEntry>> {
         let boards_dir = adj_path.join("boards");
         if !boards_dir.exists() {
             warn!("boards directory not found, creating empty boards list");
@@ -212,7 +258,7 @@ impl ADJConfig {
                 continue;
             }
 
-            // Try to load the board
+            // Try to load the board using the old method
             match Self::load_single_board(&board_name, &board_dir) {
                 Ok(board) => {
                     boards.push(BoardEntry::new(board_name, board));
@@ -225,6 +271,33 @@ impl ADJConfig {
         }
 
         Ok(boards)
+    }
+
+    fn load_single_board_from_path(board_name: &str, board_file_path: &Path, board_dir: &Path) -> Result<Board> {
+        // Load main board JSON from the specific file path
+        let content = fs::read_to_string(board_file_path)?;
+        let board_info: serde_json::Value = serde_json::from_str(&content)?;
+
+        // Extract basic board info
+        let board_id = board_info["board_id"].as_u64().unwrap_or(0) as u32;
+        let board_ip = board_info["board_ip"].as_str().unwrap_or("0.0.0.0").to_string();
+
+        // Load measurements from paths specified in board JSON
+        let empty_array = vec![];
+        let measurement_files = board_info["measurements"].as_array().unwrap_or(&empty_array);
+        let measurements = Self::load_measurements_from_files(measurement_files, board_dir)?;
+
+        // Load packets from paths specified in board JSON
+        let empty_array_packets = vec![];
+        let packet_files = board_info["packets"].as_array().unwrap_or(&empty_array_packets);
+        let packets = Self::load_packets_from_files(packet_files, board_dir)?;
+
+        Ok(Board {
+            board_id,
+            board_ip,
+            measurements,
+            packets,
+        })
     }
 
     fn load_single_board(board_name: &str, board_dir: &Path) -> Result<Board> {
