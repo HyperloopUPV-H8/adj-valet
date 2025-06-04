@@ -108,11 +108,11 @@ jobs:
         
         # Try to open in browser
         if command -v xdg-open > /dev/null; then
-            xdg-open "file://$(pwd)/web/index.html"
+            xdg-open "http://localhost:8000"
         elif command -v open > /dev/null; then
-            open "file://$(pwd)/web/index.html"
+            open "http://localhost:8000"
         else
-            echo "Please open file://$(pwd)/web/index.html in your browser"
+            echo "Please open http://localhost:8000 in your browser"
         fi
         
         echo "Press Ctrl+C to stop the server"
@@ -130,7 +130,7 @@ jobs:
         echo 'echo Opening web interface...' >> release/adj-valet-${{ matrix.target }}/start.bat
         echo 'start adj-valet-backend.exe --port 8000' >> release/adj-valet-${{ matrix.target }}/start.bat
         echo 'timeout /t 2 /nobreak > nul' >> release/adj-valet-${{ matrix.target }}/start.bat
-        echo 'start "ADJ Valet" "file:///%CD%/web/index.html"' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'start "ADJ Valet" "http://localhost:8000"' >> release/adj-valet-${{ matrix.target }}/start.bat
         echo 'echo Press any key to exit...' >> release/adj-valet-${{ matrix.target }}/start.bat
         echo 'pause > nul' >> release/adj-valet-${{ matrix.target }}/start.bat
 
