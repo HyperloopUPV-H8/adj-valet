@@ -17,7 +17,7 @@ interface Props {
 }
 
 export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) => {
-    const { updateBoard, removeBoard, addBoard, boards } = useADJStore();
+    const { updateBoard, boards } = useADJStore();
     const [isPacketModalOpen, setIsPacketModalOpen] = useState(false);
     const [selectedPacket, setSelectedPacket] = useState<Packet | null>(null);
     const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
@@ -28,41 +28,23 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
     const [filteredMeasurements, setFilteredMeasurements] = useState(boardInfo.measurements);
     const [filteredPackets, setFilteredPackets] = useState(boardInfo.packets);
     const [originalBoardName] = useState(boardName);
-    const [formData, setFormData] = useState<BoardInfo>(boardInfo);
-
-    useEffect(() => {
-        setFormData(boardInfo);
-    }, [boardInfo]);
 
     const handleBoardUpdate = (field: keyof BoardInfo, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (String(formData.board_id) !== String(boardInfo.board_id)) {
+        // Check if board_id changed and if it conflicts with another board
+        if (field === 'board_id' && String(value) !== String(boardInfo.board_id)) {
             const existingBoard = boards.find(board => {
                 const boardKey = Object.keys(board)[0];
-                return board[boardKey].board_id === Number(formData.board_id) && boardKey !== originalBoardName;
+                return board[boardKey].board_id === Number(value) && boardKey !== originalBoardName;
             });
 
             if (existingBoard) {
                 alert('A board with this ID already exists. Please choose a different ID.');
                 return;
             }
-
-            removeBoard(originalBoardName);
-            addBoard(String(formData.board_id), formData);
-        } else {
-            updateBoard(boardName, 'board_id', String(formData.board_id));
-            updateBoard(boardName, 'board_ip', formData.board_ip);
         }
 
-        setSelectedSection('general_info');
+        // Update directly in the store
+        updateBoard(originalBoardName, field, value);
     };
 
     useEffect(() => {
@@ -81,32 +63,23 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
 
     return (
         <div className="flex w-full flex-col">
-            <form onSubmit={handleSubmit}>
-                <h2 className="mb-2 text-xl font-bold text-zinc-600">Board ID</h2>
-                <Input
-                    object={formData}
-                    field={'board_id'}
-                    setObject={(field, value) => handleBoardUpdate(field, value)}
-                    className='w-[30rem]'
-                />
+            <h2 className="mb-2 text-xl font-bold text-zinc-600">Board ID</h2>
+            <Input
+                object={boardInfo}
+                field={'board_id'}
+                setObject={(field, value) => handleBoardUpdate(field, value)}
+                className='w-[30rem]'
+            />
 
-                <h2 className="mt-4 mb-2 text-xl font-bold text-zinc-600">
-                    Board IP
-                </h2>
-                <Input
-                    object={formData}
-                    field={'board_ip'}
-                    setObject={(field, value) => handleBoardUpdate(field, value)}
-                    className='w-[30rem]'
-                />
-
-                <button
-                    type="submit"
-                    className="bg-hupv-orange/90 hover:bg-hupv-orange mt-4 w-fit cursor-pointer rounded-lg px-4 py-2 text-white"
-                >
-                    Save Changes
-                </button>
-            </form>
+            <h2 className="mt-4 mb-2 text-xl font-bold text-zinc-600">
+                Board IP
+            </h2>
+            <Input
+                object={boardInfo}
+                field={'board_ip'}
+                setObject={(field, value) => handleBoardUpdate(field, value)}
+                className='w-[30rem]'
+            />
 
             <div className="flex gap-4 mt-8 mb-4 items-center">
                 <h2 className="text-xl font-bold text-zinc-600">
