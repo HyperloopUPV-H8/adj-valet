@@ -94,6 +94,7 @@ impl ADJConfig {
     /// Load configuration from an ADJ directory
     pub fn load_from_directory(adj_path: &Path) -> Result<Self> {
         info!("Loading ADJ configuration from: {}", adj_path.display());
+        info!("ADJ directory exists: {}", adj_path.exists());
 
         // Load general_info.json
         let general_info = Self::load_general_info(adj_path)?;
@@ -204,17 +205,22 @@ impl ADJConfig {
         // First, read boards.json to get the list of boards and their paths
         let boards_json_path = adj_path.join("boards.json");
         if !boards_json_path.exists() {
-            warn!("boards.json not found, scanning boards directory");
+            warn!("boards.json not found at: {}, scanning boards directory", boards_json_path.display());
             return Self::load_boards_from_directory(adj_path);
         }
 
+        info!("Reading boards.json from: {}", boards_json_path.display());
         let boards_content = fs::read_to_string(boards_json_path)?;
         let board_list: HashMap<String, String> = serde_json::from_str(&boards_content)?;
+        
+        info!("Found {} boards in boards.json: {:?}", board_list.len(), board_list.keys().collect::<Vec<_>>());
 
         let mut boards = Vec::new();
 
         for (board_name, board_path) in board_list {
             let full_board_path = adj_path.join(&board_path);
+            
+            info!("Loading board '{}' from: {}", board_name, full_board_path.display());
             
             if !full_board_path.exists() {
                 warn!("Board file not found: {}", full_board_path.display());
@@ -227,6 +233,8 @@ impl ADJConfig {
             // Try to load the board
             match Self::load_single_board_from_path(&board_name, &full_board_path, board_dir) {
                 Ok(board) => {
+                    info!("Successfully loaded board '{}' with {} measurements and {} packets", 
+                           board_name, board.measurements.len(), board.packets.len());
                     boards.push(BoardEntry::new(board_name, board));
                 }
                 Err(e) => {
@@ -236,6 +244,7 @@ impl ADJConfig {
             }
         }
 
+        info!("Total boards loaded: {}", boards.len());
         Ok(boards)
     }
 
