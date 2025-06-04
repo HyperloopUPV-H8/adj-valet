@@ -1,4 +1,4 @@
-import { useADJStore } from '../store/ADJStore';
+import { useADJState, useADJActions } from '../store/ADJStore';
 import { BoardInfo, BoardName } from '../types/Board';
 import { Input } from './Input';
 import { PacketCard } from './PacketCard';
@@ -17,7 +17,8 @@ interface Props {
 }
 
 export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) => {
-    const { updateBoard, boards, removeBoard, addBoard } = useADJStore();
+    const { config } = useADJState();
+    const { updateBoard, removeBoard, addBoard } = useADJActions();
     const [isPacketModalOpen, setIsPacketModalOpen] = useState(false);
     const [selectedPacket, setSelectedPacket] = useState<Packet | null>(null);
     const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
@@ -31,10 +32,12 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
     const [isEditingName, setIsEditingName] = useState(false);
     const [newBoardName, setNewBoardName] = useState(boardName);
 
-    const handleBoardUpdate = (field: keyof BoardInfo, value: string) => {
+    const handleBoardUpdate = (field: keyof BoardInfo, value: string | number) => {
+        if (!config) return;
+        
         // Check if board_id changed and if it conflicts with another board
-        if (field === 'board_id' && String(value) !== String(boardInfo.board_id)) {
-            const existingBoard = boards.find(board => {
+        if (field === 'board_id' && Number(value) !== boardInfo.board_id) {
+            const existingBoard = config.boards.find(board => {
                 const boardKey = Object.keys(board)[0];
                 return board[boardKey].board_id === Number(value) && boardKey !== originalBoardName;
             });
@@ -56,7 +59,7 @@ export const BoardForm = ({ boardName, boardInfo, setSelectedSection }: Props) =
         }
 
         // Check if new name already exists
-        const existingBoard = boards.find(board => Object.keys(board)[0] === newBoardName);
+        const existingBoard = config?.boards.find(board => Object.keys(board)[0] === newBoardName);
         if (existingBoard) {
             alert('A board with this name already exists. Please choose a different name.');
             setNewBoardName(boardName);

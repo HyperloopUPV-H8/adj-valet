@@ -1,6 +1,6 @@
 
 interface Props {
-    title: string;
+    title: string | React.ReactNode;
     isSelected?: boolean;
     onClick?: () => void;
 }  
@@ -12,13 +12,13 @@ export const Button = ({ title, isSelected, onClick }: Props) => (
     >
         <div className="flex h-full items-center gap-2 px-4">
             {isSelected && (
-                <i className="fa-solid fa-caret-right text-hupv-orange"></i>
+                <i className="fa-solid fa-caret-right text-orange-500"></i>
             )}
-            <p
-                className={`text-lg font-semibold ${isSelected ? 'text-hupv-orange' : 'text-hupv-blue'}`}
+            <div
+                className={`text-lg font-semibold ${isSelected ? 'text-orange-500' : 'text-blue-900'}`}
             >
                 {title}
-            </p>
+            </div>
         </div>
     </div>
 );

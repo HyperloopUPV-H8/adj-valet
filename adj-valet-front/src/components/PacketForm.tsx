@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useADJStore } from '../store/ADJStore';
+import { useADJActions } from '../store/ADJStore';
 import { Packet } from '../types/Packet';
 import { Measurement } from '../types/Measurement';
 import { Input } from './Input';
@@ -11,7 +11,8 @@ interface Props {
 }
 
 export const PacketForm = ({ boardName, packet, onSubmit, isCreating }: Props) => {
-    const { boards, updatePacketField, removePacket, addPacket } = useADJStore();
+    // const { config } = useADJState();
+    const { removePacket, addPacket } = useADJActions();
     const [formData, setFormData] = useState(packet);
     const [searchTerm, setSearchTerm] = useState('');
     const [originalId] = useState(packet.id);
