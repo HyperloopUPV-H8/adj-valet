@@ -248,11 +248,15 @@ impl ADJConfig {
         let board_id = board_info["board_id"].as_u64().unwrap_or(0) as u32;
         let board_ip = board_info["board_ip"].as_str().unwrap_or("0.0.0.0").to_string();
 
-        // Load measurements
-        let measurements = Self::load_measurements(board_name, board_dir)?;
+        // Load measurements from paths specified in board JSON
+        let empty_array = vec![];
+        let measurement_files = board_info["measurements"].as_array().unwrap_or(&empty_array);
+        let measurements = Self::load_measurements_from_files(measurement_files, board_dir)?;
 
-        // Load packets
-        let packets = Self::load_packets(board_dir)?;
+        // Load packets from paths specified in board JSON
+        let empty_array_packets = vec![];
+        let packet_files = board_info["packets"].as_array().unwrap_or(&empty_array_packets);
+        let packets = Self::load_packets_from_files(packet_files, board_dir)?;
 
         Ok(Board {
             board_id,
@@ -262,28 +266,34 @@ impl ADJConfig {
         })
     }
 
-    fn load_measurements(board_name: &str, board_dir: &Path) -> Result<Vec<Measurement>> {
-        let measurements_path = board_dir.join(format!("{}_measurements.json", board_name));
-        if measurements_path.exists() {
-            let content = fs::read_to_string(measurements_path)?;
-            Ok(serde_json::from_str(&content)?)
-        } else {
-            Ok(Vec::new())
+    fn load_measurements_from_files(measurement_files: &[serde_json::Value], board_dir: &Path) -> Result<Vec<Measurement>> {
+        let mut all_measurements = Vec::new();
+
+        for file_value in measurement_files {
+            if let Some(file_name) = file_value.as_str() {
+                let measurements_path = board_dir.join(file_name);
+                if measurements_path.exists() {
+                    let content = fs::read_to_string(measurements_path)?;
+                    let measurements: Vec<Measurement> = serde_json::from_str(&content)?;
+                    all_measurements.extend(measurements);
+                }
+            }
         }
+
+        Ok(all_measurements)
     }
 
-    fn load_packets(board_dir: &Path) -> Result<Vec<Packet>> {
+    fn load_packets_from_files(packet_files: &[serde_json::Value], board_dir: &Path) -> Result<Vec<Packet>> {
         let mut all_packets = Vec::new();
 
-        // Load from various packet files
-        let packet_files = ["packets.json", "orders.json", "control_packets.json"];
-
-        for file_name in &packet_files {
-            let packet_path = board_dir.join(file_name);
-            if packet_path.exists() {
-                let content = fs::read_to_string(packet_path)?;
-                let packets: Vec<Packet> = serde_json::from_str(&content)?;
-                all_packets.extend(packets);
+        for file_value in packet_files {
+            if let Some(file_name) = file_value.as_str() {
+                let packet_path = board_dir.join(file_name);
+                if packet_path.exists() {
+                    let content = fs::read_to_string(packet_path)?;
+                    let packets: Vec<Packet> = serde_json::from_str(&content)?;
+                    all_packets.extend(packets);
+                }
             }
         }
 
