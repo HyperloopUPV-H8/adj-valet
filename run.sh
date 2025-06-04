@@ -33,9 +33,10 @@ print_msg() {
 check_dependencies() {
     print_msg $BLUE "🔍 Checking dependencies..."
     
-    # Check Python
-    if ! command -v python3 &> /dev/null; then
-        print_msg $RED "❌ Python 3 is not installed"
+    # Check Rust
+    if ! command -v cargo &> /dev/null; then
+        print_msg $RED "❌ Rust/Cargo is not installed"
+        print_msg $YELLOW "Please install from https://rustup.rs/"
         exit 1
     fi
     
@@ -56,14 +57,14 @@ check_dependencies() {
 
 # Install backend dependencies
 install_backend_deps() {
-    print_msg $BLUE "📦 Installing backend dependencies..."
+    print_msg $BLUE "📦 Installing Rust backend dependencies..."
     cd "$BACKEND_DIR"
     
-    if [ -f "requirements.txt" ]; then
-        pip install -r requirements.txt --quiet
-        print_msg $GREEN "✅ Backend dependencies installed"
+    if [ -f "Cargo.toml" ]; then
+        cargo build --quiet
+        print_msg $GREEN "✅ Rust backend dependencies installed"
     else
-        print_msg $YELLOW "⚠️  No requirements.txt found in backend directory"
+        print_msg $YELLOW "⚠️  No Cargo.toml found in backend directory"
     fi
     
     cd - > /dev/null
@@ -86,29 +87,42 @@ install_frontend_deps() {
 
 # Start backend service
 start_backend() {
-    print_msg $BLUE "🔧 Starting backend service..."
+    print_msg $BLUE "🔧 Starting Rust backend service..."
     cd "$BACKEND_DIR"
     
-    # Check if uvicorn is installed
-    if ! python3 -c "import uvicorn" 2>/dev/null; then
-        print_msg $YELLOW "⚠️  Installing uvicorn..."
-        pip install uvicorn fastapi
+    # Check if cargo is installed
+    if ! command -v cargo &> /dev/null; then
+        print_msg $RED "❌ Cargo (Rust) is not installed"
+        print_msg $YELLOW "Please install Rust from https://rustup.rs/"
+        exit 1
     fi
     
-    # Start backend
-    uvicorn api:app --reload --port $BACKEND_PORT --host 0.0.0.0 &
+    # Start backend with port discovery
+    cargo run -- --port $BACKEND_PORT &
     BACKEND_PID=$!
     
     cd - > /dev/null
     
-    # Wait for backend to start
-    sleep 2
+    # Wait for backend to start and read the actual port
+    sleep 3
     
     # Check if backend is running
     if kill -0 $BACKEND_PID 2>/dev/null; then
-        print_msg $GREEN "✅ Backend running on http://localhost:$BACKEND_PORT"
+        # Read the actual port from the port file
+        if [ -f "$BACKEND_DIR/.adj-valet-port" ]; then
+            ACTUAL_BACKEND_PORT=$(cat "$BACKEND_DIR/.adj-valet-port" | grep -o '"backend_port":[0-9]*' | grep -o '[0-9]*')
+            if [ "$ACTUAL_BACKEND_PORT" != "$BACKEND_PORT" ]; then
+                print_msg $YELLOW "⚠️  Requested port $BACKEND_PORT was unavailable"
+                print_msg $GREEN "✅ Rust backend running on http://localhost:$ACTUAL_BACKEND_PORT"
+                BACKEND_PORT=$ACTUAL_BACKEND_PORT
+            else
+                print_msg $GREEN "✅ Rust backend running on http://localhost:$BACKEND_PORT"
+            fi
+        else
+            print_msg $GREEN "✅ Rust backend running on http://localhost:$BACKEND_PORT (assumed)"
+        fi
     else
-        print_msg $RED "❌ Failed to start backend"
+        print_msg $RED "❌ Failed to start Rust backend"
         exit 1
     fi
 }

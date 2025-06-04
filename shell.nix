@@ -13,9 +13,9 @@ let
 
   # Shell scripts for running the application
   runBackend = pkgs.writeShellScriptBin "adj-backend" ''
-    echo "🚀 Starting ADJ Valet Backend..."
+    echo "🚀 Starting ADJ Valet Rust Backend..."
     cd ${toString ./.}/backend
-    uvicorn api:app --reload --port 8000 --host 0.0.0.0
+    cargo run -- --port 8000
   '';
 
   runFrontend = pkgs.writeShellScriptBin "adj-frontend" ''
