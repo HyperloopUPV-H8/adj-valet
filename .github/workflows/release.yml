@@ -67,32 +67,32 @@ jobs:
       run: cargo build --release --target ${{ matrix.target }}
 
     - name: Create release directory
-      run: mkdir -p release/adj-valet
+      run: mkdir -p release/adj-valet-${{ matrix.target }}
 
     - name: Copy backend binary (Unix)
       if: matrix.os != 'windows-latest'
       run: |
-        cp backend/target/${{ matrix.target }}/release/backend${{ matrix.binary_suffix }} release/adj-valet/adj-valet-backend${{ matrix.binary_suffix }}
-        chmod +x release/adj-valet/adj-valet-backend${{ matrix.binary_suffix }}
+        cp backend/target/${{ matrix.target }}/release/backend${{ matrix.binary_suffix }} release/adj-valet-${{ matrix.target }}/adj-valet-backend${{ matrix.binary_suffix }}
+        chmod +x release/adj-valet-${{ matrix.target }}/adj-valet-backend${{ matrix.binary_suffix }}
 
     - name: Copy backend binary (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        copy backend\target\${{ matrix.target }}\release\backend${{ matrix.binary_suffix }} release\adj-valet\adj-valet-backend${{ matrix.binary_suffix }}
+        copy backend\target\${{ matrix.target }}\release\backend${{ matrix.binary_suffix }} release\adj-valet-${{ matrix.target }}\adj-valet-backend${{ matrix.binary_suffix }}
 
     - name: Copy frontend build
-      run: cp -r adj-valet-front/dist release/adj-valet/web
+      run: cp -r adj-valet-front/dist release/adj-valet-${{ matrix.target }}/web
 
     - name: Copy documentation and scripts
       run: |
-        cp README.md release/adj-valet/
-        cp RELEASE-GUIDE.md release/adj-valet/
-        cp run.sh release/adj-valet/ || echo "run.sh not found, skipping"
+        cp README.md release/adj-valet-${{ matrix.target }}/
+        cp RELEASE-GUIDE.md release/adj-valet-${{ matrix.target }}/
+        cp run.sh release/adj-valet-${{ matrix.target }}/ || echo "run.sh not found, skipping"
 
     - name: Create startup script (Unix)
       if: matrix.os != 'windows-latest'
       run: |
-        cat > release/adj-valet/start.sh << 'EOF'
+        cat > release/adj-valet-${{ matrix.target }}/start.sh << 'EOF'
         #!/bin/bash
         cd "$(dirname "$0")"
         echo "Starting ADJ Valet..."
@@ -118,33 +118,33 @@ jobs:
         echo "Press Ctrl+C to stop the server"
         wait $BACKEND_PID
         EOF
-        chmod +x release/adj-valet/start.sh
+        chmod +x release/adj-valet-${{ matrix.target }}/start.sh
 
     - name: Create startup script (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        echo '@echo off' > release/adj-valet/start.bat
-        echo 'cd /d "%~dp0"' >> release/adj-valet/start.bat
-        echo 'echo Starting ADJ Valet...' >> release/adj-valet/start.bat
-        echo 'echo Backend will be available at http://localhost:8000' >> release/adj-valet/start.bat
-        echo 'echo Opening web interface...' >> release/adj-valet/start.bat
-        echo 'start adj-valet-backend.exe --port 8000' >> release/adj-valet/start.bat
-        echo 'timeout /t 2 /nobreak > nul' >> release/adj-valet/start.bat
-        echo 'start "ADJ Valet" "file:///%CD%/web/index.html"' >> release/adj-valet/start.bat
-        echo 'echo Press any key to exit...' >> release/adj-valet/start.bat
-        echo 'pause > nul' >> release/adj-valet/start.bat
+        echo '@echo off' > release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'cd /d "%~dp0"' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Starting ADJ Valet...' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Backend will be available at http://localhost:8000' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Opening web interface...' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'start adj-valet-backend.exe --port 8000' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'timeout /t 2 /nobreak > nul' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'start "ADJ Valet" "file:///%CD%/web/index.html"' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Press any key to exit...' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'pause > nul' >> release/adj-valet-${{ matrix.target }}/start.bat
 
     - name: Create archive (Unix)
       if: matrix.os != 'windows-latest'
       run: |
         cd release
-        tar czf adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }} adj-valet/
+        tar czf adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }} adj-valet-${{ matrix.target }}/
 
     - name: Create archive (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd release
-        Compress-Archive -Path adj-valet -DestinationPath adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }}
+        Compress-Archive -Path adj-valet-${{ matrix.target }} -DestinationPath adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
