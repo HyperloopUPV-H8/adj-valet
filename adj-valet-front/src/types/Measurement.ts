@@ -4,7 +4,7 @@ export type Measurement = {
     type: string;
     displayUnits: string;
     podUnits: string;
-    enumValues: string[];
-    safeRange: [number, number];
-    warningRange: [number, number];
+    enumValues?: string[];
+    safeRange?: [number, number];
+    warningRange?: [number, number];
 }; 

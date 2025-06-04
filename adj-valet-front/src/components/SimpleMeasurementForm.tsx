@@ -52,12 +52,15 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
 
     const handleRangeChange = (rangeType: 'safeRange' | 'warningRange', index: 0 | 1, value: string) => {
         const numValue = parseFloat(value) || 0;
-        setFormData(prev => ({
-            ...prev,
-            [rangeType]: index === 0 
-                ? [numValue, prev[rangeType][1]] 
-                : [prev[rangeType][0], numValue]
-        }));
+        setFormData(prev => {
+            const currentRange = prev[rangeType] || [0, 0];
+            return {
+                ...prev,
+                [rangeType]: index === 0 
+                    ? [numValue, currentRange[1]] 
+                    : [currentRange[0], numValue]
+            };
+        });
     };
 
     const handleEnumValuesChange = (value: string) => {
@@ -143,7 +146,7 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                     <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
                     <input
                         type="text"
-                        value={formData.enumValues.join(', ')}
+                        value={formData.enumValues?.join(', ') || ''}
                         onChange={(e) => handleEnumValuesChange(e.target.value)}
                         placeholder="Value1, Value2, Value3"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -158,7 +161,7 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                                 <input
                                     type="number"
                                     step="any"
-                                    value={formData.safeRange[0]}
+                                    value={formData.safeRange?.[0] || ''}
                                     onChange={(e) => handleRangeChange('safeRange', 0, e.target.value)}
                                     placeholder="Min"
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -169,7 +172,7 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                                 <input
                                     type="number"
                                     step="any"
-                                    value={formData.safeRange[1]}
+                                    value={formData.safeRange?.[1] || ''}
                                     onChange={(e) => handleRangeChange('safeRange', 1, e.target.value)}
                                     placeholder="Max"
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -186,7 +189,7 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                                 <input
                                     type="number"
                                     step="any"
-                                    value={formData.warningRange[0]}
+                                    value={formData.warningRange?.[0] || ''}
                                     onChange={(e) => handleRangeChange('warningRange', 0, e.target.value)}
                                     placeholder="Min"
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -197,7 +200,7 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                                 <input
                                     type="number"
                                     step="any"
-                                    value={formData.warningRange[1]}
+                                    value={formData.warningRange?.[1] || ''}
                                     onChange={(e) => handleRangeChange('warningRange', 1, e.target.value)}
                                     placeholder="Max"
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"

@@ -16,7 +16,13 @@ interface Props {
 export const SimpleBoardForm = ({ boardName, boardInfo }: Props) => {
     const { config } = useADJState();
     const { updateBoard } = useADJActions();
-    const [localBoardInfo, setLocalBoardInfo] = useState(boardInfo);
+    
+    // Get the current board info directly from the store instead of relying on props
+    const currentBoardInfo = config?.boards.find(
+        board => Object.keys(board)[0] === boardName
+    )?.[boardName] || boardInfo;
+    
+    const [localBoardInfo, setLocalBoardInfo] = useState(currentBoardInfo);
     
     // Modal states
     const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
@@ -26,8 +32,11 @@ export const SimpleBoardForm = ({ boardName, boardInfo }: Props) => {
 
     // Update local board info when the store changes
     useEffect(() => {
-        setLocalBoardInfo(boardInfo);
-    }, [boardInfo]);
+        console.log('SimpleBoardForm - Board info updated:', boardName, currentBoardInfo);
+        console.log('Measurements count:', currentBoardInfo?.measurements?.length || 0);
+        console.log('Measurements:', currentBoardInfo?.measurements);
+        setLocalBoardInfo(currentBoardInfo);
+    }, [currentBoardInfo, boardName]);
 
     if (!config) {
         return <div>No configuration loaded</div>;
@@ -124,22 +133,25 @@ export const SimpleBoardForm = ({ boardName, boardInfo }: Props) => {
                             </button>
                         </div>
                         <div className="bg-gray-50 rounded-md p-4">
-                            {localBoardInfo.measurements.length > 0 ? (
-                                <div className="space-y-2">
-                                    {localBoardInfo.measurements.map((measurement, index) => (
-                                        <div 
-                                            key={index} 
-                                            className="flex justify-between items-center bg-white p-3 rounded cursor-pointer hover:bg-blue-50 transition-colors border"
-                                            onClick={() => handleMeasurementClick(measurement)}
-                                        >
-                                            <span className="font-medium text-blue-800">{measurement.name}</span>
-                                            <span className="text-sm text-gray-500">ID: {measurement.id}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500 text-sm">No measurements configured</p>
-                            )}
+                            {(() => {
+                                console.log('Rendering measurements for', boardName, '- count:', localBoardInfo.measurements.length);
+                                return localBoardInfo.measurements.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {localBoardInfo.measurements.map((measurement, index) => (
+                                            <div 
+                                                key={index} 
+                                                className="flex justify-between items-center bg-white p-3 rounded cursor-pointer hover:bg-blue-50 transition-colors border"
+                                                onClick={() => handleMeasurementClick(measurement)}
+                                            >
+                                                <span className="font-medium text-blue-800">{measurement.name}</span>
+                                                <span className="text-sm text-gray-500">ID: {measurement.id}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500 text-sm">No measurements configured (count: {localBoardInfo.measurements.length})</p>
+                                );
+                            })()}
                         </div>
                     </div>
 
