@@ -354,10 +354,34 @@ impl ADJConfig {
         for file_value in measurement_files {
             if let Some(file_name) = file_value.as_str() {
                 let measurements_path = board_dir.join(file_name);
+                info!("Loading measurements from: {}", measurements_path.display());
+                
                 if measurements_path.exists() {
-                    let content = fs::read_to_string(measurements_path)?;
-                    let measurements: Vec<Measurement> = serde_json::from_str(&content)?;
-                    all_measurements.extend(measurements);
+                    match fs::read_to_string(&measurements_path) {
+                        Ok(content) => {
+                            if content.trim().is_empty() {
+                                warn!("Empty measurements file: {}", measurements_path.display());
+                                continue;
+                            }
+                            
+                            match serde_json::from_str::<Vec<Measurement>>(&content) {
+                                Ok(measurements) => {
+                                    info!("Loaded {} measurements from {}", measurements.len(), file_name);
+                                    all_measurements.extend(measurements);
+                                }
+                                Err(e) => {
+                                    warn!("Failed to parse measurements from {}: {}", measurements_path.display(), e);
+                                    continue;
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Failed to read measurements file {}: {}", measurements_path.display(), e);
+                            continue;
+                        }
+                    }
+                } else {
+                    warn!("Measurements file not found: {}", measurements_path.display());
                 }
             }
         }
@@ -371,10 +395,34 @@ impl ADJConfig {
         for file_value in packet_files {
             if let Some(file_name) = file_value.as_str() {
                 let packet_path = board_dir.join(file_name);
+                info!("Loading packets from: {}", packet_path.display());
+                
                 if packet_path.exists() {
-                    let content = fs::read_to_string(packet_path)?;
-                    let packets: Vec<Packet> = serde_json::from_str(&content)?;
-                    all_packets.extend(packets);
+                    match fs::read_to_string(&packet_path) {
+                        Ok(content) => {
+                            if content.trim().is_empty() {
+                                warn!("Empty packet file: {}", packet_path.display());
+                                continue;
+                            }
+                            
+                            match serde_json::from_str::<Vec<Packet>>(&content) {
+                                Ok(packets) => {
+                                    info!("Loaded {} packets from {}", packets.len(), file_name);
+                                    all_packets.extend(packets);
+                                }
+                                Err(e) => {
+                                    warn!("Failed to parse packets from {}: {}", packet_path.display(), e);
+                                    continue;
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Failed to read packet file {}: {}", packet_path.display(), e);
+                            continue;
+                        }
+                    }
+                } else {
+                    warn!("Packet file not found: {}", packet_path.display());
                 }
             }
         }
