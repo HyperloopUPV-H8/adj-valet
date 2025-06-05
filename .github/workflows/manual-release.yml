@@ -173,11 +173,10 @@ jobs:
     - name: Read RELEASE-GUIDE.md
       id: release_guide
       run: |
-        {
-          echo 'RELEASE_GUIDE<<EOF'
-          cat RELEASE-GUIDE.md
-          echo 'EOF'
-        } >> $GITHUB_OUTPUT
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "RELEASE_GUIDE<<$EOF" >> $GITHUB_OUTPUT
+        cat RELEASE-GUIDE.md >> $GITHUB_OUTPUT
+        echo "$EOF" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
