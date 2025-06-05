@@ -25,7 +25,21 @@ ADJ Valet is a web-based configuration management tool designed for the Hyperloo
 
 ## Quick Start
 
-### Option 1: Using the Run Script (Recommended)
+### Option 1: Download Pre-built Release (Easiest)
+
+1. **Download** the latest release for your platform from [Releases](https://github.com/HyperloopUPV-H8/adj-valet/releases)
+   - Windows (Intel/AMD): `adj-valet-x86_64-pc-windows-msvc.zip`
+   - Windows (ARM): `adj-valet-aarch64-pc-windows-msvc.zip`
+   - macOS (Intel): `adj-valet-x86_64-apple-darwin.tar.gz`
+   - macOS (Apple Silicon): `adj-valet-aarch64-apple-darwin.tar.gz`
+   - Linux: `adj-valet-x86_64-unknown-linux-gnu.tar.gz`
+
+2. **Extract** the archive
+3. **Run** the startup script:
+   - Windows: Double-click `start.bat`
+   - macOS/Linux: Double-click `start.sh` or run `./start.sh`
+
+### Option 2: Using the Run Script (Development)
 
 ```bash
 # Clone the repository
@@ -40,7 +54,7 @@ cd adj-valet
 ./run.sh frontend  # Frontend only
 ```
 
-### Option 2: Using Nix Shell
+### Option 3: Using Nix Shell
 
 ```bash
 # Enter the Nix development shell

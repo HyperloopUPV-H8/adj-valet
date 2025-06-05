@@ -170,27 +170,12 @@ jobs:
       with:
         path: artifacts
 
-    - name: Read RELEASE-GUIDE.md
-      id: release_guide
-      run: |
-        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-        echo "RELEASE_GUIDE<<$EOF" >> $GITHUB_OUTPUT
-        cat RELEASE-GUIDE.md >> $GITHUB_OUTPUT
-        echo "$EOF" >> $GITHUB_OUTPUT
-
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.event.inputs.tag }}
         name: ADJ Valet ${{ github.event.inputs.tag }}
-        body: |
-          ## What's Changed
-          
-          This release includes improvements to stability and performance.
-          
-          ---
-          
-          ${{ steps.release_guide.outputs.RELEASE_GUIDE }}
+        generate_release_notes: true
         files: artifacts/**/*
         draft: false
         prerelease: false
