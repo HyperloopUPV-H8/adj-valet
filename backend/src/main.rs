@@ -12,6 +12,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
 use tracing::{error, info, warn};
 
 mod config;
@@ -276,6 +277,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/config", get(get_config))
         .route("/config", put(update_config))
         .route("/boards/:name/rename", post(rename_board))
+        .nest_service("/", ServeDir::new("web").fallback(ServeDir::new("web").append_index_html_on_directories(true)))
         .layer(CorsLayer::permissive())
         .with_state(state);
 
