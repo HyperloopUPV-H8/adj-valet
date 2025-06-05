@@ -1,0 +1,196 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.0.0-beta)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary_suffix: ''
+            archive_suffix: '.tar.gz'
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary_suffix: '.exe'
+            archive_suffix: '.zip'
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            binary_suffix: '.exe'
+            archive_suffix: '.zip'
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary_suffix: ''
+            archive_suffix: '.tar.gz'
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary_suffix: ''
+            archive_suffix: '.tar.gz'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: adj-valet-front/package-lock.json
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install frontend dependencies
+      working-directory: adj-valet-front
+      run: npm ci
+
+    - name: Build frontend
+      working-directory: adj-valet-front
+      run: npm run build
+
+    - name: Build backend
+      working-directory: backend
+      run: cargo build --release --target ${{ matrix.target }}
+
+    - name: Create release directory
+      run: mkdir -p release/adj-valet-${{ matrix.target }}
+
+    - name: Copy backend binary (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cp backend/target/${{ matrix.target }}/release/backend${{ matrix.binary_suffix }} release/adj-valet-${{ matrix.target }}/adj-valet-backend${{ matrix.binary_suffix }}
+        chmod +x release/adj-valet-${{ matrix.target }}/adj-valet-backend${{ matrix.binary_suffix }}
+
+    - name: Copy backend binary (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        copy backend\target\${{ matrix.target }}\release\backend${{ matrix.binary_suffix }} release\adj-valet-${{ matrix.target }}\adj-valet-backend${{ matrix.binary_suffix }}
+
+    - name: Copy frontend build
+      run: cp -r adj-valet-front/dist release/adj-valet-${{ matrix.target }}/web
+
+    - name: Copy documentation and scripts
+      run: |
+        cp README.md release/adj-valet-${{ matrix.target }}/
+        cp RELEASE-GUIDE.md release/adj-valet-${{ matrix.target }}/
+        cp run.sh release/adj-valet-${{ matrix.target }}/ || echo "run.sh not found, skipping"
+
+    - name: Create startup script (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cat > release/adj-valet-${{ matrix.target }}/start.sh << 'EOF'
+        #!/bin/bash
+        cd "$(dirname "$0")"
+        echo "Starting ADJ Valet..."
+        echo "Backend will be available at http://localhost:8000"
+        echo "Opening web interface..."
+        
+        # Start backend in background
+        ./adj-valet-backend --port 8000 &
+        BACKEND_PID=$!
+        
+        # Wait a moment for backend to start
+        sleep 2
+        
+        # Try to open in browser
+        if command -v xdg-open > /dev/null; then
+            xdg-open "http://localhost:8000"
+        elif command -v open > /dev/null; then
+            open "http://localhost:8000"
+        else
+            echo "Please open http://localhost:8000 in your browser"
+        fi
+        
+        echo "Press Ctrl+C to stop the server"
+        wait $BACKEND_PID
+        EOF
+        chmod +x release/adj-valet-${{ matrix.target }}/start.sh
+
+    - name: Create startup script (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo '@echo off' > release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'cd /d "%~dp0"' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Starting ADJ Valet...' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Backend will be available at http://localhost:8000' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Opening web interface...' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'start adj-valet-backend.exe --port 8000' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'timeout /t 2 /nobreak > nul' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'start "ADJ Valet" "http://localhost:8000"' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'echo Press any key to exit...' >> release/adj-valet-${{ matrix.target }}/start.bat
+        echo 'pause > nul' >> release/adj-valet-${{ matrix.target }}/start.bat
+
+    - name: Create archive (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd release
+        tar czf adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }} adj-valet-${{ matrix.target }}/
+
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd release
+        Compress-Archive -Path adj-valet-${{ matrix.target }} -DestinationPath adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: adj-valet-${{ matrix.target }}
+        path: release/adj-valet-${{ matrix.target }}${{ matrix.archive_suffix }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create tag
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git tag -a ${{ github.event.inputs.tag }} -m "Release ${{ github.event.inputs.tag }}"
+        git push origin ${{ github.event.inputs.tag }}
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Read RELEASE-GUIDE.md
+      id: release_guide
+      run: |
+        echo "RELEASE_GUIDE<<EOF" >> $GITHUB_OUTPUT
+        cat RELEASE-GUIDE.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.tag }}
+        name: ADJ Valet ${{ github.event.inputs.tag }}
+        body: |
+          ## What's Changed
+          
+          This release includes improvements to stability and performance.
+          
+          ---
+          
+          ${{ steps.release_guide.outputs.RELEASE_GUIDE }}
+        files: artifacts/**/*
+        draft: false
+        prerelease: ${{ contains(github.event.inputs.tag, 'alpha') || contains(github.event.inputs.tag, 'beta') || contains(github.event.inputs.tag, 'rc') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,5 @@
 export type Packet = {
-    id: string;
+    id?: number;
     type: string;
     name: string;
     variables: string[];
