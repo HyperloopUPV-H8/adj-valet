@@ -172,9 +172,10 @@ jobs:
     - name: Read RELEASE-GUIDE.md
       id: release_guide
       run: |
-        echo "RELEASE_GUIDE<<EOF" >> $GITHUB_OUTPUT
+        delimiter="$(openssl rand -hex 8)"
+        echo "RELEASE_GUIDE<<${delimiter}" >> $GITHUB_OUTPUT
         cat RELEASE-GUIDE.md >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        echo "${delimiter}" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -191,6 +192,7 @@ jobs:
           ${{ steps.release_guide.outputs.RELEASE_GUIDE }}
         files: artifacts/**/*
         draft: false
-        prerelease: ${{ contains(github.event.inputs.tag, 'alpha') || contains(github.event.inputs.tag, 'beta') || contains(github.event.inputs.tag, 'rc') }}
+        prerelease: false
+        make_latest: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
