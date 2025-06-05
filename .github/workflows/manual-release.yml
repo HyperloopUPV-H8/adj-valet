@@ -173,10 +173,11 @@ jobs:
     - name: Read RELEASE-GUIDE.md
       id: release_guide
       run: |
-        delimiter="$(openssl rand -hex 8)"
-        echo "RELEASE_GUIDE<<${delimiter}" >> $GITHUB_OUTPUT
-        cat RELEASE-GUIDE.md >> $GITHUB_OUTPUT
-        echo "${delimiter}" >> $GITHUB_OUTPUT
+        {
+          echo 'RELEASE_GUIDE<<EOF'
+          cat RELEASE-GUIDE.md
+          echo 'EOF'
+        } >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
