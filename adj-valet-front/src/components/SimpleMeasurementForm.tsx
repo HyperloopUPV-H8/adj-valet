@@ -115,9 +115,11 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                             onChange={(e) => handleFieldChange('type', e.target.value)}
                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
-                            <option value="Analog">Analog</option>
-                            <option value="Digital">Digital</option>
-                            <option value="Boolean">Boolean</option>
+                            <option value="float32">float32</option>
+                            <option value="float64">float64</option>
+                            <option value="uint16">uint16</option>
+                            <option value="uint32">uint32</option>
+                            <option value="bool">bool</option>
                         </select>
                     </div>
 
