@@ -13,9 +13,13 @@ interface Props {
 export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSubmit }: Props) => {
     const { addMeasurement, updateMeasurement, removeMeasurement } = useADJActions();
     const [formData, setFormData] = useState<Measurement>(measurement);
+    const [enumInputValue, setEnumInputValue] = useState(measurement.enumValues?.join(', ') || '');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Process enum values before submitting
+        processEnumValues(enumInputValue);
 
         if (!formData.id.trim()) {
             alert('ID cannot be empty');
@@ -27,12 +31,18 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
             return;
         }
 
+        // Create the final form data with processed enum values
+        const finalFormData = {
+            ...formData,
+            enumValues: enumInputValue.split(',').map(v => v.trim()).filter(v => v.length > 0)
+        };
+
         if (isCreating) {
-            addMeasurement(boardName, formData);
+            addMeasurement(boardName, finalFormData);
         } else {
             // Update each field
-            Object.keys(formData).forEach(key => {
-                updateMeasurement(boardName, measurement.id, key as keyof Measurement, formData[key as keyof Measurement]);
+            Object.keys(finalFormData).forEach(key => {
+                updateMeasurement(boardName, measurement.id, key as keyof Measurement, finalFormData[key as keyof Measurement]);
             });
         }
 
@@ -64,6 +74,10 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
     };
 
     const handleEnumValuesChange = (value: string) => {
+        setEnumInputValue(value);
+    };
+
+    const processEnumValues = (value: string) => {
         const values = value.split(',').map(v => v.trim()).filter(v => v.length > 0);
         setFormData(prev => ({ ...prev, enumValues: values }));
     };
@@ -115,101 +129,113 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                             onChange={(e) => handleFieldChange('type', e.target.value)}
                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
-                            <option value="Analog">Analog</option>
-                            <option value="Digital">Digital</option>
-                            <option value="Boolean">Boolean</option>
+                            <option value="float32">float32</option>
+                            <option value="float64">float64</option>
+                            <option value="uint16">uint16</option>
+                            <option value="uint32">uint32</option>
+                            <option value="bool">bool</option>
+                            <option value="enum">enum</option>
                         </select>
                     </div>
 
+                    {formData.type !== 'enum' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Pod Units</label>
+                                <input
+                                    type="text"
+                                    value={formData.podUnits}
+                                    onChange={(e) => handleFieldChange('podUnits', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Display Units</label>
+                                <input
+                                    type="text"
+                                    value={formData.displayUnits}
+                                    onChange={(e) => handleFieldChange('displayUnits', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                />
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {formData.type === 'enum' && (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pod Units</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
                         <input
                             type="text"
-                            value={formData.podUnits}
-                            onChange={(e) => handleFieldChange('podUnits', e.target.value)}
+                            value={enumInputValue}
+                            onChange={(e) => handleEnumValuesChange(e.target.value)}
+                            onBlur={(e) => processEnumValues(e.target.value)}
+                            placeholder="Value1, Value2, Value3"
                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
                     </div>
+                )}
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Display Units</label>
-                        <input
-                            type="text"
-                            value={formData.displayUnits}
-                            onChange={(e) => handleFieldChange('displayUnits', e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
-                    <input
-                        type="text"
-                        value={formData.enumValues?.join(', ') || ''}
-                        onChange={(e) => handleEnumValuesChange(e.target.value)}
-                        placeholder="Value1, Value2, Value3"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    />
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Safe Range</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <input
-                                    type="number"
-                                    step="any"
-                                    value={formData.safeRange?.[0] || ''}
-                                    onChange={(e) => handleRangeChange('safeRange', 0, e.target.value)}
-                                    placeholder="Min"
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                />
-                                <span className="text-xs text-gray-500 mt-1 block">Minimum</span>
+                {formData.type !== 'enum' && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Safe Range</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={formData.safeRange?.[0] || ''}
+                                        onChange={(e) => handleRangeChange('safeRange', 0, e.target.value)}
+                                        placeholder="Min"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    />
+                                    <span className="text-xs text-gray-500 mt-1 block">Minimum</span>
+                                </div>
+                                <div>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={formData.safeRange?.[1] || ''}
+                                        onChange={(e) => handleRangeChange('safeRange', 1, e.target.value)}
+                                        placeholder="Max"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    />
+                                    <span className="text-xs text-gray-500 mt-1 block">Maximum</span>
+                                </div>
                             </div>
-                            <div>
-                                <input
-                                    type="number"
-                                    step="any"
-                                    value={formData.safeRange?.[1] || ''}
-                                    onChange={(e) => handleRangeChange('safeRange', 1, e.target.value)}
-                                    placeholder="Max"
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                />
-                                <span className="text-xs text-gray-500 mt-1 block">Maximum</span>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Warning Range</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={formData.warningRange?.[0] || ''}
+                                        onChange={(e) => handleRangeChange('warningRange', 0, e.target.value)}
+                                        placeholder="Min"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    />
+                                    <span className="text-xs text-gray-500 mt-1 block">Minimum</span>
+                                </div>
+                                <div>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={formData.warningRange?.[1] || ''}
+                                        onChange={(e) => handleRangeChange('warningRange', 1, e.target.value)}
+                                        placeholder="Max"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    />
+                                    <span className="text-xs text-gray-500 mt-1 block">Maximum</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Warning Range</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <input
-                                    type="number"
-                                    step="any"
-                                    value={formData.warningRange?.[0] || ''}
-                                    onChange={(e) => handleRangeChange('warningRange', 0, e.target.value)}
-                                    placeholder="Min"
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                />
-                                <span className="text-xs text-gray-500 mt-1 block">Minimum</span>
-                            </div>
-                            <div>
-                                <input
-                                    type="number"
-                                    step="any"
-                                    value={formData.warningRange?.[1] || ''}
-                                    onChange={(e) => handleRangeChange('warningRange', 1, e.target.value)}
-                                    placeholder="Max"
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                />
-                                <span className="text-xs text-gray-500 mt-1 block">Maximum</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                )}
 
             </form>
 

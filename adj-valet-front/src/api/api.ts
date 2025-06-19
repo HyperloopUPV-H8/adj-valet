@@ -44,7 +44,7 @@ class ApiClient {
           }
         }
       }
-    } catch (e) {
+    } catch {
       console.log('Could not read port file, falling back to discovery');
     }
 
