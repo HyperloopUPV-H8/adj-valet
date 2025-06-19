@@ -27,21 +27,29 @@ export const MeasurementForm = ({
         displayUnits: measurement.displayUnits || '',
         podUnits: measurement.podUnits || ''
     });
+    const [enumInputValue, setEnumInputValue] = useState(measurement.enumValues?.join(', ') || '');
     const [originalId] = useState(measurement.id);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Process enum values before validation
+        const processedEnumValues = enumInputValue.split(',').map(v => v.trim()).filter(v => v.length > 0);
+        const finalFormData = {
+            ...formData,
+            enumValues: processedEnumValues
+        };
+
         // Validate required fields
-        if (!formData.id.trim()) {
+        if (!finalFormData.id.trim()) {
             alert('ID cannot be empty');
             return;
         }
-        if (!formData.name.trim()) {
+        if (!finalFormData.name.trim()) {
             alert('Name cannot be empty');
             return;
         }
-        if (!formData.type.trim()) {
+        if (!finalFormData.type.trim()) {
             alert('Type cannot be empty');
             return;
         }
@@ -57,7 +65,7 @@ export const MeasurementForm = ({
         
         if (boardIndex !== -1) {
             const existingMeasurement = config.boards[boardIndex][boardName].measurements.find(
-                (m: Measurement) => m.id === formData.id && m.id !== originalId
+                (m: Measurement) => m.id === finalFormData.id && m.id !== originalId
             );
 
             if (existingMeasurement) {
@@ -67,44 +75,44 @@ export const MeasurementForm = ({
         }
 
         if (isCreating) {
-            addMeasurement(boardName, formData);
+            addMeasurement(boardName, finalFormData);
         } else {
-            if (originalId !== formData.id) {
+            if (originalId !== finalFormData.id) {
                 removeMeasurement(boardName, originalId);
-                addMeasurement(boardName, formData);
+                addMeasurement(boardName, finalFormData);
             } else {
-                updateMeasurement(boardName, measurement.id, 'id', formData.id);
-                updateMeasurement(boardName, measurement.id, 'name', formData.name);
-                updateMeasurement(boardName, measurement.id, 'type', formData.type);
+                updateMeasurement(boardName, measurement.id, 'id', finalFormData.id);
+                updateMeasurement(boardName, measurement.id, 'name', finalFormData.name);
+                updateMeasurement(boardName, measurement.id, 'type', finalFormData.type);
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'displayUnits',
-                    formData.displayUnits,
+                    finalFormData.displayUnits,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'podUnits',
-                    formData.podUnits,
+                    finalFormData.podUnits,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'enumValues',
-                    formData.enumValues,
+                    finalFormData.enumValues,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'safeRange',
-                    formData.safeRange,
+                    finalFormData.safeRange,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'warningRange',
-                    formData.warningRange,
+                    finalFormData.warningRange,
                 );
             }
         }
@@ -156,146 +164,107 @@ export const MeasurementForm = ({
                         label="Name"
                     />
 
-                    <Input
-                        object={formData}
-                        field={'type'}
-                        setObject={(field, value) =>
-                            updateFormField('type', field, value)
-                        }
-                        label="Type"
-                    />
+                    <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select
+                            value={formData.type}
+                            onChange={(e) => updateFormField('type', 'type', e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        >
+                            <option value="float32">float32</option>
+                            <option value="float64">float64</option>
+                            <option value="uint16">uint16</option>
+                            <option value="uint32">uint32</option>
+                            <option value="bool">bool</option>
+                            <option value="enum">enum</option>
+                        </select>
+                    </div>
 
-                    <Input
-                        object={formData}
-                        field={'displayUnits'}
-                        setObject={(field, value) =>
-                            updateFormField('displayUnits', field, value)
-                        }
-                        label="Display Units"
-                    />
+                    {formData.type !== 'enum' && (
+                        <>
+                            <Input
+                                object={formData}
+                                field={'displayUnits'}
+                                setObject={(field, value) =>
+                                    updateFormField('displayUnits', field, value)
+                                }
+                                label="Display Units"
+                            />
 
-                    <Input
-                        object={formData}
-                        field={'podUnits'}
-                        setObject={(field, value) =>
-                            updateFormField('podUnits', field, value)
-                        }
-                        label="Pod Units"
-                    />
+                            <Input
+                                object={formData}
+                                field={'podUnits'}
+                                setObject={(field, value) =>
+                                    updateFormField('podUnits', field, value)
+                                }
+                                label="Pod Units"
+                            />
+                        </>
+                    )}
 
-                    <div className="mb-2 flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium text-gray-700">
-                                Enum Values ({formData.enumValues?.length || 0})
-                            </label>
-                        </div>
-
-                        <details className="rounded-lg">
-                            <summary className="cursor-pointer">
-                                Show/Hide Enum Values
-                            </summary>
-                            <div className="mt-3 space-y-2">
-                                {(formData.enumValues || []).map((value, index) => (
-                                    <div key={index} className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={value}
-                                            onChange={(e) => {
-                                                const newValues = [
-                                                    ...(formData.enumValues || []),
-                                                ];
-                                                newValues[index] =
-                                                    e.target.value;
-                                                updateFormField(
-                                                    'enumValues',
-                                                    'enumValues',
-                                                    newValues,
-                                                );
-                                            }}
-                                            className="block w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const newValues =
-                                                    (formData.enumValues || []).filter(
-                                                        (_, i) => i !== index,
-                                                    );
-                                                updateFormField(
-                                                    'enumValues',
-                                                    'enumValues',
-                                                    newValues,
-                                                );
-                                            }}
-                                            className="cursor-pointer rounded-lg bg-red-500 px-3 text-white hover:bg-red-600"
-                                        >
-                                            <i className="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const newValues = [
-                                        ...(formData.enumValues || []),
-                                        '',
-                                    ];
-                                    updateFormField(
-                                        'enumValues',
-                                        'enumValues',
-                                        newValues,
-                                    );
+                    {formData.type === 'enum' && (
+                        <div className="mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
+                            <input
+                                type="text"
+                                value={enumInputValue}
+                                onChange={(e) => setEnumInputValue(e.target.value)}
+                                onBlur={(e) => {
+                                    const values = e.target.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+                                    updateFormField('enumValues', 'enumValues', values);
                                 }}
-                                className="mt-4 cursor-pointer rounded-lg bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
-                            >
-                                <i className="fa-solid fa-plus"></i>
-                            </button>
-                        </details>
-                    </div>
-                    <div className="flex w-full gap-4">
-                        <Input
-                            object={{safeMin: formData.safeRange?.[0] || 0}}
-                            field={'safeMin'}
-                            setObject={(_, value) =>
-                                updateFormField('safeRange', '0', value)
-                            }
-                            label="Safe Range Min"
-                            className='flex-1'
-                        />
+                                placeholder="Value1, Value2, Value3"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            />
+                        </div>
+                    )}
+                    {formData.type !== 'enum' && (
+                        <>
+                            <div className="flex w-full gap-4">
+                                <Input
+                                    object={{safeMin: formData.safeRange?.[0] || 0}}
+                                    field={'safeMin'}
+                                    setObject={(_, value) =>
+                                        updateFormField('safeRange', '0', value)
+                                    }
+                                    label="Safe Range Min"
+                                    className='flex-1'
+                                />
 
-                        <Input
-                            object={{safeMax: formData.safeRange?.[1] || 0}}
-                            field={'safeMax'}
-                            setObject={(_, value) =>
-                                updateFormField('safeRange', '1', value)
-                            }
-                            label="Safe Range Max"
-                            className='flex-1'
-                        />
-                    </div>
+                                <Input
+                                    object={{safeMax: formData.safeRange?.[1] || 0}}
+                                    field={'safeMax'}
+                                    setObject={(_, value) =>
+                                        updateFormField('safeRange', '1', value)
+                                    }
+                                    label="Safe Range Max"
+                                    className='flex-1'
+                                />
+                            </div>
 
-                    <div className="flex w-full gap-4">
-                        <Input
-                            object={{warningMin: formData.warningRange?.[0] || 0}}
-                            field={'warningMin'}
-                            setObject={(_, value) =>
-                                updateFormField('warningRange', '0', value)
-                            }
-                            label="Warning Range Min"
-                            className='flex-1'
-                        />
+                            <div className="flex w-full gap-4">
+                                <Input
+                                    object={{warningMin: formData.warningRange?.[0] || 0}}
+                                    field={'warningMin'}
+                                    setObject={(_, value) =>
+                                        updateFormField('warningRange', '0', value)
+                                    }
+                                    label="Warning Range Min"
+                                    className='flex-1'
+                                />
 
-                        <Input
-                            object={{warningMax: formData.warningRange?.[1] || 0}}
-                            field={'warningMax'}
-                            setObject={(_, value) =>
-                                updateFormField('warningRange', '1', value)
-                            }
-                            label="Warning Range Max"
-                            className='flex-1'
-                        />
-                    </div>
+                                <Input
+                                    object={{warningMax: formData.warningRange?.[1] || 0}}
+                                    field={'warningMax'}
+                                    setObject={(_, value) =>
+                                        updateFormField('warningRange', '1', value)
+                                    }
+                                    label="Warning Range Max"
+                                    className='flex-1'
+                                />
+                            </div>
+                        </>
+                    )}
 
                     <div className='flex gap-4'>
                         {!isCreating && (
