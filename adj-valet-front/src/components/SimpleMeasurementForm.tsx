@@ -120,6 +120,7 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                             <option value="uint16">uint16</option>
                             <option value="uint32">uint32</option>
                             <option value="bool">bool</option>
+                            <option value="enum">enum</option>
                         </select>
                     </div>
 
@@ -144,16 +145,18 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
-                    <input
-                        type="text"
-                        value={formData.enumValues?.join(', ') || ''}
-                        onChange={(e) => handleEnumValuesChange(e.target.value)}
-                        placeholder="Value1, Value2, Value3"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    />
-                </div>
+                {formData.type === 'enum' && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
+                        <input
+                            type="text"
+                            value={formData.enumValues?.join(', ') || ''}
+                            onChange={(e) => handleEnumValuesChange(e.target.value)}
+                            placeholder="Value1, Value2, Value3"
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        />
+                    </div>
+                )}
 
                 <div className="space-y-4">
                     <div>
