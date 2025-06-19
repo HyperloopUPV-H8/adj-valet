@@ -162,3 +162,4 @@ CLAUDE.md
 
 # Port files
 backend/.adj-valet-port
+adj-valet-front/public/.adj-valet-port

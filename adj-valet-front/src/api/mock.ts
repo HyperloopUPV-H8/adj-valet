@@ -21,7 +21,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                     {
                         id: "25",
                         name: "Engine Temperature",
-                        type: "Analog",
+                        type: "float32",
                         podUnits: "C",
                         displayUnits: "Celsius",
                         enumValues: ["Low", "Medium", "High"],
@@ -31,7 +31,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                     {
                         id: "26",
                         name: "Oil Pressure",
-                        type: "Digital",
+                        type: "uint16",
                         podUnits: "Bar",
                         displayUnits: "Bar",
                         enumValues: ["Critical", "Normal", "High"],
@@ -63,7 +63,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                     {
                         id: "50",
                         name: "Battery Voltage",
-                        type: "Analog",
+                        type: "float32",
                         podUnits: "V",
                         displayUnits: "Volts",
                         enumValues: [],
@@ -89,7 +89,7 @@ export const ADJ_INFO_MOCK: ADJ = {
                     {
                         id: "75",
                         name: "Track Position",
-                        type: "Digital",
+                        type: "uint16",
                         podUnits: "mm",
                         displayUnits: "Millimeters",
                         enumValues: ["Start", "Middle", "End"],
