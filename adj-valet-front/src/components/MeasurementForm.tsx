@@ -156,14 +156,21 @@ export const MeasurementForm = ({
                         label="Name"
                     />
 
-                    <Input
-                        object={formData}
-                        field={'type'}
-                        setObject={(field, value) =>
-                            updateFormField('type', field, value)
-                        }
-                        label="Type"
-                    />
+                    <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select
+                            value={formData.type}
+                            onChange={(e) => updateFormField('type', 'type', e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        >
+                            <option value="float32">float32</option>
+                            <option value="float64">float64</option>
+                            <option value="uint16">uint16</option>
+                            <option value="uint32">uint32</option>
+                            <option value="bool">bool</option>
+                            <option value="enum">enum</option>
+                        </select>
+                    </div>
 
                     <Input
                         object={formData}
@@ -183,76 +190,21 @@ export const MeasurementForm = ({
                         label="Pod Units"
                     />
 
-                    <div className="mb-2 flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium text-gray-700">
-                                Enum Values ({formData.enumValues?.length || 0})
-                            </label>
-                        </div>
-
-                        <details className="rounded-lg">
-                            <summary className="cursor-pointer">
-                                Show/Hide Enum Values
-                            </summary>
-                            <div className="mt-3 space-y-2">
-                                {(formData.enumValues || []).map((value, index) => (
-                                    <div key={index} className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={value}
-                                            onChange={(e) => {
-                                                const newValues = [
-                                                    ...(formData.enumValues || []),
-                                                ];
-                                                newValues[index] =
-                                                    e.target.value;
-                                                updateFormField(
-                                                    'enumValues',
-                                                    'enumValues',
-                                                    newValues,
-                                                );
-                                            }}
-                                            className="block w-full rounded-lg border border-gray-300 p-2.5 focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const newValues =
-                                                    (formData.enumValues || []).filter(
-                                                        (_, i) => i !== index,
-                                                    );
-                                                updateFormField(
-                                                    'enumValues',
-                                                    'enumValues',
-                                                    newValues,
-                                                );
-                                            }}
-                                            className="cursor-pointer rounded-lg bg-red-500 px-3 text-white hover:bg-red-600"
-                                        >
-                                            <i className="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const newValues = [
-                                        ...(formData.enumValues || []),
-                                        '',
-                                    ];
-                                    updateFormField(
-                                        'enumValues',
-                                        'enumValues',
-                                        newValues,
-                                    );
+                    {formData.type === 'enum' && (
+                        <div className="mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
+                            <input
+                                type="text"
+                                value={formData.enumValues?.join(', ') || ''}
+                                onChange={(e) => {
+                                    const values = e.target.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+                                    updateFormField('enumValues', 'enumValues', values);
                                 }}
-                                className="mt-4 cursor-pointer rounded-lg bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
-                            >
-                                <i className="fa-solid fa-plus"></i>
-                            </button>
-                        </details>
-                    </div>
+                                placeholder="Value1, Value2, Value3"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            />
+                        </div>
+                    )}
                     <div className="flex w-full gap-4">
                         <Input
                             object={{safeMin: formData.safeRange?.[0] || 0}}
