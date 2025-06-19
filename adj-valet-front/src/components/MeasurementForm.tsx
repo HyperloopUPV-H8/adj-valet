@@ -27,21 +27,29 @@ export const MeasurementForm = ({
         displayUnits: measurement.displayUnits || '',
         podUnits: measurement.podUnits || ''
     });
+    const [enumInputValue, setEnumInputValue] = useState(measurement.enumValues?.join(', ') || '');
     const [originalId] = useState(measurement.id);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Process enum values before validation
+        const processedEnumValues = enumInputValue.split(',').map(v => v.trim()).filter(v => v.length > 0);
+        const finalFormData = {
+            ...formData,
+            enumValues: processedEnumValues
+        };
+
         // Validate required fields
-        if (!formData.id.trim()) {
+        if (!finalFormData.id.trim()) {
             alert('ID cannot be empty');
             return;
         }
-        if (!formData.name.trim()) {
+        if (!finalFormData.name.trim()) {
             alert('Name cannot be empty');
             return;
         }
-        if (!formData.type.trim()) {
+        if (!finalFormData.type.trim()) {
             alert('Type cannot be empty');
             return;
         }
@@ -57,7 +65,7 @@ export const MeasurementForm = ({
         
         if (boardIndex !== -1) {
             const existingMeasurement = config.boards[boardIndex][boardName].measurements.find(
-                (m: Measurement) => m.id === formData.id && m.id !== originalId
+                (m: Measurement) => m.id === finalFormData.id && m.id !== originalId
             );
 
             if (existingMeasurement) {
@@ -67,44 +75,44 @@ export const MeasurementForm = ({
         }
 
         if (isCreating) {
-            addMeasurement(boardName, formData);
+            addMeasurement(boardName, finalFormData);
         } else {
-            if (originalId !== formData.id) {
+            if (originalId !== finalFormData.id) {
                 removeMeasurement(boardName, originalId);
-                addMeasurement(boardName, formData);
+                addMeasurement(boardName, finalFormData);
             } else {
-                updateMeasurement(boardName, measurement.id, 'id', formData.id);
-                updateMeasurement(boardName, measurement.id, 'name', formData.name);
-                updateMeasurement(boardName, measurement.id, 'type', formData.type);
+                updateMeasurement(boardName, measurement.id, 'id', finalFormData.id);
+                updateMeasurement(boardName, measurement.id, 'name', finalFormData.name);
+                updateMeasurement(boardName, measurement.id, 'type', finalFormData.type);
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'displayUnits',
-                    formData.displayUnits,
+                    finalFormData.displayUnits,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'podUnits',
-                    formData.podUnits,
+                    finalFormData.podUnits,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'enumValues',
-                    formData.enumValues,
+                    finalFormData.enumValues,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'safeRange',
-                    formData.safeRange,
+                    finalFormData.safeRange,
                 );
                 updateMeasurement(
                     boardName,
                     measurement.id,
                     'warningRange',
-                    formData.warningRange,
+                    finalFormData.warningRange,
                 );
             }
         }
@@ -195,8 +203,9 @@ export const MeasurementForm = ({
                             <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
                             <input
                                 type="text"
-                                value={formData.enumValues?.join(', ') || ''}
-                                onChange={(e) => {
+                                value={enumInputValue}
+                                onChange={(e) => setEnumInputValue(e.target.value)}
+                                onBlur={(e) => {
                                     const values = e.target.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
                                     updateFormField('enumValues', 'enumValues', values);
                                 }}

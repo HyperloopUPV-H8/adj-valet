@@ -13,9 +13,13 @@ interface Props {
 export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSubmit }: Props) => {
     const { addMeasurement, updateMeasurement, removeMeasurement } = useADJActions();
     const [formData, setFormData] = useState<Measurement>(measurement);
+    const [enumInputValue, setEnumInputValue] = useState(measurement.enumValues?.join(', ') || '');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Process enum values before submitting
+        processEnumValues(enumInputValue);
 
         if (!formData.id.trim()) {
             alert('ID cannot be empty');
@@ -27,12 +31,18 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
             return;
         }
 
+        // Create the final form data with processed enum values
+        const finalFormData = {
+            ...formData,
+            enumValues: enumInputValue.split(',').map(v => v.trim()).filter(v => v.length > 0)
+        };
+
         if (isCreating) {
-            addMeasurement(boardName, formData);
+            addMeasurement(boardName, finalFormData);
         } else {
             // Update each field
-            Object.keys(formData).forEach(key => {
-                updateMeasurement(boardName, measurement.id, key as keyof Measurement, formData[key as keyof Measurement]);
+            Object.keys(finalFormData).forEach(key => {
+                updateMeasurement(boardName, measurement.id, key as keyof Measurement, finalFormData[key as keyof Measurement]);
             });
         }
 
@@ -64,6 +74,10 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
     };
 
     const handleEnumValuesChange = (value: string) => {
+        setEnumInputValue(value);
+    };
+
+    const processEnumValues = (value: string) => {
         const values = value.split(',').map(v => v.trim()).filter(v => v.length > 0);
         setFormData(prev => ({ ...prev, enumValues: values }));
     };
@@ -150,8 +164,9 @@ export const SimpleMeasurementForm = ({ boardName, measurement, isCreating, onSu
                         <label className="block text-sm font-medium text-gray-700 mb-1">Enum Values (comma-separated)</label>
                         <input
                             type="text"
-                            value={formData.enumValues?.join(', ') || ''}
+                            value={enumInputValue}
                             onChange={(e) => handleEnumValuesChange(e.target.value)}
+                            onBlur={(e) => processEnumValues(e.target.value)}
                             placeholder="Value1, Value2, Value3"
                             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
