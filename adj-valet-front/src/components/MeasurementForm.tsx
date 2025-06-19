@@ -180,23 +180,27 @@ export const MeasurementForm = ({
                         </select>
                     </div>
 
-                    <Input
-                        object={formData}
-                        field={'displayUnits'}
-                        setObject={(field, value) =>
-                            updateFormField('displayUnits', field, value)
-                        }
-                        label="Display Units"
-                    />
+                    {formData.type !== 'enum' && (
+                        <>
+                            <Input
+                                object={formData}
+                                field={'displayUnits'}
+                                setObject={(field, value) =>
+                                    updateFormField('displayUnits', field, value)
+                                }
+                                label="Display Units"
+                            />
 
-                    <Input
-                        object={formData}
-                        field={'podUnits'}
-                        setObject={(field, value) =>
-                            updateFormField('podUnits', field, value)
-                        }
-                        label="Pod Units"
-                    />
+                            <Input
+                                object={formData}
+                                field={'podUnits'}
+                                setObject={(field, value) =>
+                                    updateFormField('podUnits', field, value)
+                                }
+                                label="Pod Units"
+                            />
+                        </>
+                    )}
 
                     {formData.type === 'enum' && (
                         <div className="mb-2">
@@ -214,49 +218,53 @@ export const MeasurementForm = ({
                             />
                         </div>
                     )}
-                    <div className="flex w-full gap-4">
-                        <Input
-                            object={{safeMin: formData.safeRange?.[0] || 0}}
-                            field={'safeMin'}
-                            setObject={(_, value) =>
-                                updateFormField('safeRange', '0', value)
-                            }
-                            label="Safe Range Min"
-                            className='flex-1'
-                        />
+                    {formData.type !== 'enum' && (
+                        <>
+                            <div className="flex w-full gap-4">
+                                <Input
+                                    object={{safeMin: formData.safeRange?.[0] || 0}}
+                                    field={'safeMin'}
+                                    setObject={(_, value) =>
+                                        updateFormField('safeRange', '0', value)
+                                    }
+                                    label="Safe Range Min"
+                                    className='flex-1'
+                                />
 
-                        <Input
-                            object={{safeMax: formData.safeRange?.[1] || 0}}
-                            field={'safeMax'}
-                            setObject={(_, value) =>
-                                updateFormField('safeRange', '1', value)
-                            }
-                            label="Safe Range Max"
-                            className='flex-1'
-                        />
-                    </div>
+                                <Input
+                                    object={{safeMax: formData.safeRange?.[1] || 0}}
+                                    field={'safeMax'}
+                                    setObject={(_, value) =>
+                                        updateFormField('safeRange', '1', value)
+                                    }
+                                    label="Safe Range Max"
+                                    className='flex-1'
+                                />
+                            </div>
 
-                    <div className="flex w-full gap-4">
-                        <Input
-                            object={{warningMin: formData.warningRange?.[0] || 0}}
-                            field={'warningMin'}
-                            setObject={(_, value) =>
-                                updateFormField('warningRange', '0', value)
-                            }
-                            label="Warning Range Min"
-                            className='flex-1'
-                        />
+                            <div className="flex w-full gap-4">
+                                <Input
+                                    object={{warningMin: formData.warningRange?.[0] || 0}}
+                                    field={'warningMin'}
+                                    setObject={(_, value) =>
+                                        updateFormField('warningRange', '0', value)
+                                    }
+                                    label="Warning Range Min"
+                                    className='flex-1'
+                                />
 
-                        <Input
-                            object={{warningMax: formData.warningRange?.[1] || 0}}
-                            field={'warningMax'}
-                            setObject={(_, value) =>
-                                updateFormField('warningRange', '1', value)
-                            }
-                            label="Warning Range Max"
-                            className='flex-1'
-                        />
-                    </div>
+                                <Input
+                                    object={{warningMax: formData.warningRange?.[1] || 0}}
+                                    field={'warningMax'}
+                                    setObject={(_, value) =>
+                                        updateFormField('warningRange', '1', value)
+                                    }
+                                    label="Warning Range Max"
+                                    className='flex-1'
+                                />
+                            </div>
+                        </>
+                    )}
 
                     <div className='flex gap-4'>
                         {!isCreating && (
